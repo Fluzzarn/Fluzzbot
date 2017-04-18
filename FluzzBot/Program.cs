@@ -10,6 +10,16 @@ namespace FluzzBot
     {
         static void Main(string[] args)
         {
+
+            FluzzBot bot = new FluzzBot();
+
+            
+            bot.Start();
+
+            while(bot.IsRunning)
+            {
+               
+            }
         }
     }
 }
