@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FluzzBot
 {
-    class FluzzBot
+    public class FluzzBot
     {
 
         TcpClient IRCSocket;
@@ -24,7 +24,7 @@ namespace FluzzBot
         private StreamReader _chatReader;
         private StreamWriter _chatWriter;
         private  bool _isRunning;
-
+        private string _messagePrefix;
         public  bool IsRunning
         {
             get { return _isRunning; }
@@ -47,7 +47,7 @@ namespace FluzzBot
             catch (Exception ex)
             {
                 Console.WriteLine("Bot Threw An Exception And Cannot Recovery");
-                throw;
+                throw ex;
             }
 
         }
@@ -95,12 +95,27 @@ namespace FluzzBot
                 if(buffer.Split(' ')[1] == "001")
                 {
                     WriteToStream("JOIN #" + Credentials.ChannelName.ToLower());
+                    _messagePrefix = "PRIVMSG #" + Credentials.ChannelName.ToLower() + " :";
                 }
 
                 if (buffer.Contains("PING :"))
                 {
                     
                     WriteToStream("PONG :tmi.twitch.tv");
+                }
+
+                //Actual Chat Messages
+                if(buffer.Contains("PRIVMSG #" + Credentials.ChannelName.ToLower() + " :"))
+                {
+                    string substringKey = "#" + Credentials.ChannelName.ToLower() + " :";
+                    string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
+                    Console.WriteLine(userStrippedMsg);
+                    if(userStrippedMsg.StartsWith("!request"))
+                    {
+                        string song = userStrippedMsg.Substring(userStrippedMsg.IndexOf(' ') + 1);
+
+                        EnqueueMessage(_messagePrefix + "Adding " + song + " to requests!");
+                    }
                 }
 
                 Console.WriteLine(buffer);
@@ -123,7 +138,7 @@ namespace FluzzBot
                     if (_messagesToSend.Count > 0)
                     {
                         //1500 to make sure twitch doesn't time us out
-                        if (timer.ElapsedMilliseconds > 5000)
+                        if (timer.ElapsedMilliseconds > 1500)
                         {
 
                             string command = _messagesToSend.Dequeue();
@@ -170,7 +185,7 @@ namespace FluzzBot
 
 
 
-        private void EnqueueMessage(String message)
+        public void EnqueueMessage(String message)
         {
             lock (_messagesToSend)
             {
@@ -183,7 +198,6 @@ namespace FluzzBot
         private void WriteToStream(String message)
         {
             Console.WriteLine("Writing {0} to twitch",message);
-            
             _chatWriter.WriteLine(message);
             _chatWriter.Flush();
         }
