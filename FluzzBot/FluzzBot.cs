@@ -31,13 +31,21 @@ namespace FluzzBot
             set { _isRunning = value; }
         }
 
+        public Setlist SongList { get; private set; }
+
+
+        private List<Command> ValidCommands;
 
         internal void Start()
         {
+            ValidCommands = new List<Command>();
+
+            ValidCommands.Add(new SongRequestCommand());
+
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
             _messagesToSend = new Queue<string>();
-
+            SongList = new Setlist();
             try
             {
                 Console.WriteLine("Starting FluzzBot");
@@ -110,12 +118,23 @@ namespace FluzzBot
                     string substringKey = "#" + Credentials.ChannelName.ToLower() + " :";
                     string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
                     Console.WriteLine(userStrippedMsg);
-                    if(userStrippedMsg.StartsWith("!request"))
-                    {
-                        string song = userStrippedMsg.Substring(userStrippedMsg.IndexOf(' ') + 1);
 
-                        EnqueueMessage(_messagePrefix + "Adding " + song + " to requests!");
+
+                    foreach (Command command in ValidCommands)
+                    {
+                        if(userStrippedMsg.StartsWith(command.CommandName))
+                        {
+                            command.Execute(this, userStrippedMsg);
+                        }
                     }
+
+                    //if(userStrippedMsg.StartsWith("!request"))
+                    //{
+                    //    string song = userStrippedMsg.Substring(userStrippedMsg.IndexOf(' ') + 1);
+                    //    SongRequestCommand src = new SongRequestCommand();
+                    //    src.Execute(this, song);
+                    //    EnqueueMessage(_messagePrefix + "Adding " + song + " to requests!");
+                    //}
                 }
 
                 Console.WriteLine(buffer);
@@ -200,6 +219,12 @@ namespace FluzzBot
             Console.WriteLine("Writing {0} to twitch",message);
             _chatWriter.WriteLine(message);
             _chatWriter.Flush();
+        }
+
+        public void ConstructAndEnqueueMessage(String message)
+        {
+           message = message.Insert(0, "PRIVMSG #" + Credentials.ChannelName.ToLower() + " :");
+            EnqueueMessage(message);
         }
     }
 }
