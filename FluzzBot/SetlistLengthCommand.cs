@@ -1,0 +1,50 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FluzzBot
+{
+    class SetlistLengthCommand : Command
+    {
+        private string _commandName = "!setlistLength";
+        public string CommandName { get =>  _commandName; set => throw new NotImplementedException(); }
+
+        public bool Execute(FluzzBot bot, string message)
+        {
+
+            
+
+            TimeSpan ts = bot.SongList.SetlistLength();
+            int hours = (int)(ts.TotalSeconds / 3600);
+            int minutes = (int)(ts.TotalSeconds / 60);
+            int seconds = (int)(ts.TotalSeconds % 60);
+
+            string stringMessage = "Setlist is currently ";
+
+            if (hours == 0 && minutes == 0 && seconds == 0)
+                stringMessage += "empty!";
+
+            if(hours > 0)
+            {
+                stringMessage += hours + " hours ";
+            }
+            if (minutes > 0)
+            {
+                if (hours > 0)
+                    stringMessage += ",";
+                stringMessage += minutes + " minutes ";
+            }
+            if (seconds > 0)
+            {
+                if (minutes > 0 || hours > 0)
+                    stringMessage += " and ";
+                stringMessage += seconds + " seconds";
+            }
+
+            bot.ConstructAndEnqueueMessage(stringMessage);
+            return true;
+        }
+    }
+}

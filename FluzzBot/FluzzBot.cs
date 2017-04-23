@@ -41,7 +41,8 @@ namespace FluzzBot
             ValidCommands = new List<Command>();
 
             ValidCommands.Add(new SongRequestCommand());
-
+            ValidCommands.Add(new NextSongCommand());
+            ValidCommands.Add(new SetlistLengthCommand());
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
             _messagesToSend = new Queue<string>();

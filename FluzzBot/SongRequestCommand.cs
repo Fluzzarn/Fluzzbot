@@ -16,14 +16,22 @@ namespace FluzzBot
         {
             string song = message.Substring(message.IndexOf(' ') + 1);
             Song dbSong= GetSongFromDatabase(song);
-            bot.SongList.AddSongToSetlist(dbSong);
-            bot.ConstructAndEnqueueMessage(dbSong.Name + " has been added to the setlist");
+
+            if(dbSong != null)
+            {
+                bot.SongList.AddSongToSetlist(dbSong);
+                bot.ConstructAndEnqueueMessage(dbSong.Name + " has been added to the setlist");
+            }
+            else
+            {
+                bot.ConstructAndEnqueueMessage("Could not find the song " + song + " in the database");
+            }
             return true;
         }
 
         private Song GetSongFromDatabase(string message)
         {
-            Song s = new Song();
+            Song s = null;
             MySql.Data.MySqlClient.MySqlConnection conn;
             var connString = String.Format("server={0};uid={1};pwd={2};database={3}",Credentials.DatabaseHost,Credentials.DatabaseUsername,Credentials.DatabasePassword,Credentials.DatabaseName);
 
@@ -44,8 +52,10 @@ namespace FluzzBot
 
 
                 MySqlDataReader dataReader = cmd.ExecuteReader();
+                
                 while (dataReader.Read())
                 {
+                    s = new Song();
                     s.Name = (string)(dataReader["title"]);
                     s.Guitar = (int)dataReader["guitar"];
                     s.Bass = (int)dataReader["bass"];
@@ -69,6 +79,7 @@ namespace FluzzBot
                 throw ex;
             }
             Console.WriteLine(message);
+            
             return s;
         }
     }

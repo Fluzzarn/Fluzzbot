@@ -28,5 +28,10 @@ namespace FluzzBot
         public string RequestedBy { get; set; }
         public int Duration { get; set; } //in seconds
 
+        public override string ToString()
+        {
+            return Name + " by " + Artist;
+        }
+
     }
 }

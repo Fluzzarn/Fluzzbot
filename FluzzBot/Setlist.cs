@@ -13,11 +13,18 @@ namespace FluzzBot
         Song _CurrentSong;
 
 
+
+        public Setlist()
+        {
+            SongSetlist = new List<Song>();
+        }
         public bool AddSongToSetlist(Song s)
         {
             try
             {
                 SongSetlist.Add(s);
+                if (SongSetlist.Count == 1)
+                    _CurrentSong = s;
             }
             catch (Exception)
             {
@@ -35,21 +42,21 @@ namespace FluzzBot
 
         public Song NextSong()
         {
-            try
-            {
-                _CurrentSong = SongSetlist[1];
-                SongSetlist.RemoveRange(0, 1);
-                return _CurrentSong;
-            }
-            catch (IndexOutOfRangeException ex)
-            {
-                Console.WriteLine("Setlist is currently Empty!");
 
-                Song s = new Song { Name = "Your Choice" };
-                SongSetlist.Add(s);
-                SongSetlist.RemoveRange(0, 1);
-                return s;
-            }
+                if(SongSetlist.Count >= 2)
+                {
+                    SongSetlist.RemoveRange(0, 1);
+                    _CurrentSong = SongSetlist[0];
+                }
+                else
+                {
+                    if (SongSetlist.Count == 1)
+                        SongSetlist.RemoveRange(0, 1);
+                    _CurrentSong = null;
+
+                }
+                return _CurrentSong;
+            
 
         }
 
@@ -61,7 +68,7 @@ namespace FluzzBot
             {
                 try
                 {
-                    ts.Add(new TimeSpan(0, 0, s.Duration));
+                    ts = ts.Add(new TimeSpan(0, 0, s.Duration));
                 }
                 catch (NullReferenceException ex)
                 {
