@@ -77,7 +77,10 @@ namespace FluzzBot
 
 
                     _isRunning = true;
-                    
+
+
+                SongList.LoadSetlistFromDatabase();
+
                     writeThread = new Thread(() => ChatMessageSendThread(_chatWriter));
                     readThread = new Thread(() => ChatMessageRecievedThread(_chatReader,networkStream));
                     writeThread.Start();

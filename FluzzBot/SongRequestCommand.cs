@@ -24,7 +24,7 @@ namespace FluzzBot
             }
             else
             {
-                bot.ConstructAndEnqueueMessage("Could not find the song " + song + " in the database");
+                bot.ConstructAndEnqueueMessage("Could not find the song " + song + " in the database or " + Credentials.ChannelName + " does not own the song!");
             }
             return true;
         }
@@ -41,7 +41,7 @@ namespace FluzzBot
                 conn.ConnectionString = connString;
                 conn.Open();
 
-                string queury = "SELECT * FROM Songs WHERE title LIKE '" + message + "'";
+                string queury = "SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + Credentials.ChannelName + "'";
 
 
                 Console.WriteLine(queury);
@@ -53,24 +53,35 @@ namespace FluzzBot
 
                 MySqlDataReader dataReader = cmd.ExecuteReader();
                 
-                while (dataReader.Read())
+                if(dataReader.HasRows)
                 {
-                    s = new Song();
-                    s.Name = (string)(dataReader["title"]);
-                    s.Guitar = (int)dataReader["guitar"];
-                    s.Bass = (int)dataReader["bass"];
-                    s.Drums = (int)dataReader["drums"];
-                    s.Vocals = (int)dataReader["vocals"];
-                    s.Artist = (string)dataReader["artist"];
-                    s.BPM = int.Parse((string)dataReader["bpm"]);
-                    s.Gender = ((string)dataReader["gender"])[0];
-                    s.Genre = (string)dataReader["genre"];
-                    s.Released = DateTime.Parse( (string)dataReader["released"]);
-                    s.VocalParts = (int)dataReader["vocalParts"];
-                    s.FreestyleGuitar = (string)dataReader["freestyleGuitar"] == "yes" ;
-                    s.FreestyleVocals = (string)dataReader["freestyleVocals"] == "yes";
-                    s.Duration = (int)TimeSpan.Parse((string)("00:" + dataReader["duration"])).TotalSeconds;
+                    while (dataReader.Read())
+                    {
+                        s = new Song();
+                        s.Name = (string)(dataReader["title"]);
+                        s.Guitar = (int)dataReader["guitar"];
+                        s.Bass = (int)dataReader["bass"];
+                        s.Drums = (int)dataReader["drums"];
+                        s.Vocals = (int)dataReader["vocals"];
+                        s.Artist = (string)dataReader["artist"];
+                        s.BPM = int.Parse((string)dataReader["bpm"]);
+                        s.Gender = ((string)dataReader["gender"])[0];
+                        s.Genre = (string)dataReader["genre"];
+                        s.Released = DateTime.Parse((string)dataReader["released"]);
+                        s.VocalParts = (int)dataReader["vocalParts"];
+                        s.FreestyleGuitar = (string)dataReader["freestyleGuitar"] == "yes";
+                        s.FreestyleVocals = (string)dataReader["freestyleVocals"] == "yes";
+                        s.Duration = (int)TimeSpan.Parse((string)("00:" + dataReader["duration"])).TotalSeconds;
+                    }
+
+                    dataReader.Close();
+                    string setListUpdate = "INSERT INTO current_setlist (user_id,song_id) SELECT Usernames.user_id,Songs.id FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + Credentials.ChannelName + "'";
+
+                    Console.WriteLine(setListUpdate);
+                    cmd.CommandText = setListUpdate;
+                    cmd.ExecuteNonQuery();
                 }
+
                 conn.Close();
             }
             catch (Exception ex)

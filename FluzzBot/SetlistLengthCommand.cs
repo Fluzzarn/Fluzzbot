@@ -20,11 +20,14 @@ namespace FluzzBot
             int hours = (int)(ts.TotalSeconds / 3600);
             int minutes = (int)(ts.TotalSeconds / 60);
             int seconds = (int)(ts.TotalSeconds % 60);
-
+            bool hasLength = false;
             string stringMessage = "Setlist is currently ";
 
             if (hours == 0 && minutes == 0 && seconds == 0)
+            {
+                hasLength = true;
                 stringMessage += "empty!";
+            }
 
             if(hours > 0)
             {
@@ -42,7 +45,10 @@ namespace FluzzBot
                     stringMessage += " and ";
                 stringMessage += seconds + " seconds";
             }
-
+            if(hasLength)
+            {
+                stringMessage += " long!";
+            }
             bot.ConstructAndEnqueueMessage(stringMessage);
             return true;
         }
