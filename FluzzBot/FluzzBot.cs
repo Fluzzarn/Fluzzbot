@@ -26,6 +26,7 @@ namespace FluzzBot
 
         private StreamReader _chatReader;
         private StreamWriter _chatWriter;
+        private NetworkStream _networkStream;
         private  bool _isRunning;
         private string _messagePrefix;
         public  bool IsRunning
@@ -79,6 +80,19 @@ namespace FluzzBot
                 Console.WriteLine("Starting FluzzBot");
                 ConnectToTwitch();
                 LoginToTwitch();
+
+                //while (_isRunning)
+                //{
+                //    ChatMessageSendThread(_chatWriter);
+                //    ChatMessageRecievedThread(_chatReader, _networkStream);
+                //}
+
+
+
+                writeThread = new Thread(() => ChatMessageSendThread(_chatWriter));
+                readThread = new Thread(() => ChatMessageRecievedThread(_chatReader, _networkStream));
+                writeThread.Start();
+                readThread.Start();
                 writeThread.Join();
                 readThread.Join();
             }
@@ -97,9 +111,9 @@ namespace FluzzBot
 
             try
             {
-                var networkStream = IRCSocket.GetStream();             
-                    _chatReader = new StreamReader(networkStream);
-                    _chatWriter = new StreamWriter(networkStream);
+                 _networkStream = IRCSocket.GetStream();             
+                    _chatReader = new StreamReader(_networkStream);
+                    _chatWriter = new StreamWriter(_networkStream);
 
                     String loginMessage = "PASS " + _channelCredentials.Password;
                     loginMessage += Environment.NewLine + "NICK " + _channelCredentials.Username.ToLower();
@@ -112,10 +126,7 @@ namespace FluzzBot
 
                 SongList.LoadSetlistFromDatabase();
 
-                    writeThread = new Thread(() => ChatMessageSendThread(_chatWriter));
-                    readThread = new Thread(() => ChatMessageRecievedThread(_chatReader,networkStream));
-                    writeThread.Start();
-                    readThread.Start();
+
 
                 
 
@@ -135,7 +146,7 @@ namespace FluzzBot
             {
                 if (!ns.DataAvailable)
                 {
-                    Thread.Sleep(1500);
+                    Thread.Sleep(1);
                     continue;
                 }
 
@@ -169,21 +180,6 @@ namespace FluzzBot
                         if(userStrippedMsg.StartsWith(command.CommandName))
                         {
 
-                            //Mod only abilities
-                            //if(command.RequireMod)
-                            //{
-                            //    bool isMod = false;
-                            //    foreach (var mod in Mods)
-                            //    {
-                            //        if (twitchInfo.Contains(mod))
-                            //        {
-                            //            isMod = true;
-                            //            break;
-                            //        }
-                            //    }
-                            //    if (!isMod)
-                            //        if (!twitchInfo.Contains(Credentials.ChannelName.ToLower()))
-
                             if(!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")))
                             { 
                                         continue;
@@ -212,7 +208,7 @@ namespace FluzzBot
             if(_messagesToSend == null)
                 _messagesToSend = new Queue<string>();
 
-            EnqueueMessage("PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :FluzzBot Online! kadWave");
+            //EnqueueMessage("PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :FluzzBot Online! kadWave");
             EnqueueMessage("CAP REQ :twitch.tv/commands");
             EnqueueMessage("CAP REQ :twitch.tv/tags");
 
@@ -246,6 +242,7 @@ namespace FluzzBot
                     }
 
                 }
+                Thread.Sleep(10);
             }
             Console.WriteLine("MessageThread Ended");
         }
