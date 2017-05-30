@@ -14,7 +14,7 @@ namespace FluzzBot
 
         public bool Execute(FluzzBot bot, string message)
         {
-            bot.ConstructAndEnqueueMessage("kadCheer kadCheer BITTIES kadCheer kadCheer");
+            bot.ConstructAndEnqueueMessage("kadCheer kadCheer THANKS FOR THE BITTIES kadCheer kadCheer");
             return true;
         }
     }

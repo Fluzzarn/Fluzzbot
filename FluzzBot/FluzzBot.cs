@@ -71,6 +71,8 @@ namespace FluzzBot
                 Console.WriteLine("Starting FluzzBot");
                 ConnectToTwitch();
                 LoginToTwitch();
+                writeThread.Join();
+                readThread.Join();
             }
             catch (Exception ex)
             {
@@ -144,7 +146,9 @@ namespace FluzzBot
                     string twitchInfo = buffer.Substring(0, buffer.IndexOf(substringKey));
                     string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
 
-                   // Console.WriteLine(buffer);
+#if DEBUG
+            global::System.Console.WriteLine(buffer);
+#endif
                     CurrentMessage = buffer;
 
                     foreach (Command command in ValidCommands)
@@ -153,19 +157,22 @@ namespace FluzzBot
                         {
 
                             //Mod only abilities
-                            if(command.RequireMod)
-                            {
-                                bool isMod = false;
-                                foreach (var mod in Mods)
-                                {
-                                    if (twitchInfo.Contains(mod))
-                                    {
-                                        isMod = true;
-                                        break;
-                                    }
-                                }
-                                if (!isMod)
-                                    if (!twitchInfo.Contains(Credentials.ChannelName.ToLower()))
+                            //if(command.RequireMod)
+                            //{
+                            //    bool isMod = false;
+                            //    foreach (var mod in Mods)
+                            //    {
+                            //        if (twitchInfo.Contains(mod))
+                            //        {
+                            //            isMod = true;
+                            //            break;
+                            //        }
+                            //    }
+                            //    if (!isMod)
+                            //        if (!twitchInfo.Contains(Credentials.ChannelName.ToLower()))
+
+                            if(!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")))
+                            { 
                                         continue;
                             }
 
@@ -179,33 +186,8 @@ namespace FluzzBot
                         b.Execute(this, userStrippedMsg);
                     }
 
-                    //if(userStrippedMsg.StartsWith("!request"))
-                    //{
-                    //    string song = userStrippedMsg.Substring(userStrippedMsg.IndexOf(' ') + 1);
-                    //    SongRequestCommand src = new SongRequestCommand();
-                    //    src.Execute(this, song);
-                    //    EnqueueMessage(_messagePrefix + "Adding " + song + " to requests!");
-                    //}
                 }
-                else if(buffer.Contains("The moderators of this room are:"))
-                {
-                    string modList = buffer.Substring(buffer.IndexOf("The moderators of this room are: ") + "The moderators of this room are: ".Length);
 
-                    var mods = modList.Split(',');
-
-                    if (Mods == null)
-                        Mods = new List<string>();
-
-                    foreach (var mod in mods)
-                    {
-                        
-                        Mods.Add(mod.Trim(' '));
-                        Console.WriteLine("Addind {0} to mods",mod);
-                    }
-
-
-                    
-                }
             }
         }
 
@@ -219,6 +201,9 @@ namespace FluzzBot
 
             EnqueueMessage("PRIVMSG #" + Credentials.ChannelName.ToLower() + " :FluzzBot Online! kadWave");
             EnqueueMessage("CAP REQ :twitch.tv/commands");
+            EnqueueMessage("CAP REQ :twitch.tv/tags");
+
+
             ConstructAndEnqueueMessage("/mods");
             while (_isRunning)
             {
