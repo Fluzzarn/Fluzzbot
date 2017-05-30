@@ -12,9 +12,13 @@ namespace FluzzBot
 
         List<Song> SongSetlist;
         Song _CurrentSong;
+        FluzzBot bot;
 
-
-
+        public Setlist(FluzzBot b)
+        {
+            bot = b;
+            SongSetlist = new List<Song>();
+        }
         public Setlist()
         {
             SongSetlist = new List<Song>();
@@ -46,10 +50,10 @@ namespace FluzzBot
             string justFinised = _CurrentSong.Name;
 
             var conn = new MySql.Data.MySqlClient.MySqlConnection();
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", Credentials.DatabaseHost, Credentials.DatabaseUsername, Credentials.DatabasePassword, Credentials.DatabaseName);
+            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
             conn.ConnectionString = connString;
             conn.Open();
-            string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM current_setlist WHERE song_id LIKE(SELECT id FROM Songs WHERE Songs.title LIKE '" + justFinised + "') AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + Credentials.ChannelName + "')";
+            string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM current_setlist WHERE song_id LIKE(SELECT id FROM Songs WHERE Songs.title LIKE '" + justFinised + "') AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + bot.Credentials.ChannelName + "')";
 
             MySqlCommand cmd = new MySqlCommand();
             cmd.CommandText = queury;
@@ -98,10 +102,10 @@ namespace FluzzBot
         internal void LoadSetlistFromDatabase()
         {
             var conn = new MySql.Data.MySqlClient.MySqlConnection();
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", Credentials.DatabaseHost, Credentials.DatabaseUsername, Credentials.DatabasePassword, Credentials.DatabaseName);
+            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
             conn.ConnectionString = connString;
             conn.Open();
-            string queury = "SELECT * FROM Songs s WHERE s.id IN (SELECT song_id FROM current_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + Credentials.ChannelName + "'))";
+            string queury = "SELECT * FROM Songs s WHERE s.id IN (SELECT song_id FROM current_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + bot.Credentials.ChannelName + "'))";
             MySqlCommand cmd = new MySqlCommand();
             cmd.CommandText = queury;
             cmd.Connection = conn;

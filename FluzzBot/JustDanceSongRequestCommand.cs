@@ -19,13 +19,13 @@ namespace FluzzBotCore
             bot.JustDanceSetlist.AddSong(song);
 
             MySql.Data.MySqlClient.MySqlConnection conn;
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", Credentials.DatabaseHost, Credentials.DatabaseUsername, Credentials.DatabasePassword, Credentials.DatabaseName);
+            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
                 conn = new MySql.Data.MySqlClient.MySqlConnection();
                 conn.ConnectionString = connString;
                 conn.Open();
 
 
-                string setListUpdate = "INSERT INTO justdance_setlist (user_id,song_name) SELECT Usernames.user_id,'" + song + "' FROM Usernames WHERE username LIKE '" + Credentials.ChannelName + "'";
+                string setListUpdate = "INSERT INTO justdance_setlist (user_id,song_name) SELECT Usernames.user_id,'" + song + "' FROM Usernames WHERE username LIKE '" + bot.Credentials.ChannelName + "'";
 
             Console.WriteLine(setListUpdate);
             MySqlCommand cmd = new MySqlCommand();

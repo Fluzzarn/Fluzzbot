@@ -66,6 +66,7 @@
     <Compile Include="Command.cs" />
     <Compile Include="Credentials.cs" />
     <Compile Include="CurrentSetlistCommand.cs" />
+    <Compile Include="DatabaseCredentials.cs" />
     <Compile Include="FluzzBot.cs" />
     <Compile Include="JustDanceClearSongCommand.cs" />
     <Compile Include="JustDanceCurrentSetlistCommand.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="NextSongCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RoflbotrSenpaiCommand.cs" />
     <Compile Include="Setlist.cs" />
     <Compile Include="SetlistLengthCommand.cs" />
     <Compile Include="Song.cs" />

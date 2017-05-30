@@ -16,7 +16,7 @@ namespace FluzzBot
         public bool Execute(FluzzBot bot,string message)
         {
             string song = message.Substring(message.IndexOf(' ') + 1);
-            Song dbSong= GetSongFromDatabase(song);
+            Song dbSong= GetSongFromDatabase(song, bot);
 
             if(dbSong != null)
             {
@@ -25,16 +25,16 @@ namespace FluzzBot
             }
             else
             {
-                bot.ConstructAndEnqueueMessage("Could not find the song " + song + " in the database or " + Credentials.ChannelName + " does not own the song!");
+                bot.ConstructAndEnqueueMessage("Could not find the song " + song + " in the database or " + bot.Credentials.ChannelName + " does not own the song!");
             }
             return true;
         }
 
-        private Song GetSongFromDatabase(string message)
+        private Song GetSongFromDatabase(string message, FluzzBot bot)
         {
             Song s = null;
             MySql.Data.MySqlClient.MySqlConnection conn;
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None",Credentials.DatabaseHost,Credentials.DatabaseUsername,Credentials.DatabasePassword,Credentials.DatabaseName);
+            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
 
             try
             {
@@ -42,7 +42,7 @@ namespace FluzzBot
                 conn.ConnectionString = connString;
                 conn.Open();
 
-                string queury = "SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + Credentials.ChannelName + "'";
+                string queury = "SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + bot.Credentials.ChannelName + "'";
 
 
                 Console.WriteLine(queury);
@@ -76,7 +76,7 @@ namespace FluzzBot
                     }
 
                     dataReader.Close();
-                    string setListUpdate = "INSERT INTO current_setlist (user_id,song_id) SELECT Usernames.user_id,Songs.id FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + Credentials.ChannelName + "'";
+                    string setListUpdate = "INSERT INTO current_setlist (user_id,song_id) SELECT Usernames.user_id,Songs.id FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + bot.Credentials.ChannelName + "'";
 
                     Console.WriteLine(setListUpdate);
                     cmd.CommandText = setListUpdate;

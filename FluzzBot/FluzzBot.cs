@@ -46,7 +46,14 @@ namespace FluzzBot
 
         private List<Command> ValidCommands;
         public string CurrentMessage;
-        private List<String> Mods;
+        private Credentials _channelCredentials;
+        public Credentials Credentials { get => _channelCredentials; set => throw new NotImplementedException(); }
+
+
+        public FluzzBot(Credentials c)
+        {
+            _channelCredentials = c;
+        }
 
 
         internal void Start()
@@ -60,11 +67,12 @@ namespace FluzzBot
             ValidCommands.Add(new JustDanceCurrentSetlistCommand());
             ValidCommands.Add(new JustDanceSongRequestCommand());
             ValidCommands.Add(new JustDanceClearSongCommand());
+            ValidCommands.Add(new RoflbotrSenpaiCommand());
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
             _messagesToSend = new Queue<string>();
-            JustDanceSetlist = new JustDanceSetlist();
-            SongList = new Setlist();
+            JustDanceSetlist = new JustDanceSetlist(this);
+            SongList = new Setlist(this);
             JustDanceSetlist.LoadSetlistFromDatabase();
             try
             {
@@ -77,6 +85,8 @@ namespace FluzzBot
             catch (Exception ex)
             {
                 Console.WriteLine("Bot Threw An Exception And Cannot Recovery");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.InnerException);
                 throw ex;
             }
 
@@ -91,8 +101,8 @@ namespace FluzzBot
                     _chatReader = new StreamReader(networkStream);
                     _chatWriter = new StreamWriter(networkStream);
 
-                    String loginMessage = "PASS " + Credentials.Password;
-                    loginMessage += Environment.NewLine + "NICK " + Credentials.Username.ToLower();
+                    String loginMessage = "PASS " + _channelCredentials.Password;
+                    loginMessage += Environment.NewLine + "NICK " + _channelCredentials.Username.ToLower();
 
                     EnqueueMessage(loginMessage);
 
@@ -124,13 +134,16 @@ namespace FluzzBot
             while (_isRunning)
             {
                 if (!ns.DataAvailable)
+                {
+                    Thread.Sleep(1500);
                     continue;
+                }
 
                 buffer = chatReader.ReadLine();
                 if(buffer.Split(' ')[1] == "001")
                 {
-                    WriteToStream("JOIN #" + Credentials.ChannelName.ToLower());
-                    _messagePrefix = "PRIVMSG #" + Credentials.ChannelName.ToLower() + " :";
+                    WriteToStream("JOIN #" + _channelCredentials.ChannelName.ToLower());
+                    _messagePrefix = "PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :";
                 }
 
                 if (buffer.Contains("PING :"))
@@ -140,9 +153,9 @@ namespace FluzzBot
                 }
 
                 //Actual Chat Messages
-                if(buffer.Contains("PRIVMSG #" + Credentials.ChannelName.ToLower() + " :"))
+                if(buffer.Contains("PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :"))
                 {
-                    string substringKey = "#" + Credentials.ChannelName.ToLower() + " :";
+                    string substringKey = "#" + _channelCredentials.ChannelName.ToLower() + " :";
                     string twitchInfo = buffer.Substring(0, buffer.IndexOf(substringKey));
                     string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
 
@@ -199,7 +212,7 @@ namespace FluzzBot
             if(_messagesToSend == null)
                 _messagesToSend = new Queue<string>();
 
-            EnqueueMessage("PRIVMSG #" + Credentials.ChannelName.ToLower() + " :FluzzBot Online! kadWave");
+            EnqueueMessage("PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :FluzzBot Online! kadWave");
             EnqueueMessage("CAP REQ :twitch.tv/commands");
             EnqueueMessage("CAP REQ :twitch.tv/tags");
 
@@ -221,7 +234,7 @@ namespace FluzzBot
                             //_chatWriter.Flush();
                             WriteToStream(command);
 
-                            if (command == "PART #" + Credentials.ChannelName)
+                            if (command == "PART #" + _channelCredentials.ChannelName)
                             {
                                 _isRunning = false;
                             }
@@ -279,7 +292,7 @@ namespace FluzzBot
 
         public void ConstructAndEnqueueMessage(String message)
         {
-           message = message.Insert(0, "PRIVMSG #" + Credentials.ChannelName.ToLower() + " :");
+           message = message.Insert(0, "PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :");
             EnqueueMessage(message);
         }
     }
