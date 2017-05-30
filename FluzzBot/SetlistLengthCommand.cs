@@ -10,6 +10,7 @@ namespace FluzzBot
     {
         private string _commandName = "!setlistLength";
         public string CommandName { get =>  _commandName; set => throw new NotImplementedException(); }
+        public bool RequireMod { get => false; set => throw new NotImplementedException(); }
 
         public bool Execute(FluzzBot bot, string message)
         {

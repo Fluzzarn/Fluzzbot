@@ -11,6 +11,7 @@ namespace FluzzBot
     {
         private string _commandName = "!request";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
+        public bool RequireMod { get => true; set => throw new NotImplementedException(); }
 
         public bool Execute(FluzzBot bot,string message)
         {
@@ -33,7 +34,7 @@ namespace FluzzBot
         {
             Song s = null;
             MySql.Data.MySqlClient.MySqlConnection conn;
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3}",Credentials.DatabaseHost,Credentials.DatabaseUsername,Credentials.DatabasePassword,Credentials.DatabaseName);
+            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None",Credentials.DatabaseHost,Credentials.DatabaseUsername,Credentials.DatabasePassword,Credentials.DatabaseName);
 
             try
             {

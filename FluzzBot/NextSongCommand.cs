@@ -10,6 +10,7 @@ namespace FluzzBot
     {
         private string _commandName = "!nextsong";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
+        public bool RequireMod { get => true; set => throw new NotImplementedException(); }
 
         public bool Execute(FluzzBot bot, string message)
         {

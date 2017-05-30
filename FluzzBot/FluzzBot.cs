@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+using FluzzBotCore;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -21,6 +23,7 @@ namespace FluzzBot
         private Queue<String> _messagesToSend;
 
 
+
         private StreamReader _chatReader;
         private StreamWriter _chatWriter;
         private  bool _isRunning;
@@ -32,9 +35,19 @@ namespace FluzzBot
         }
 
         public Setlist SongList { get; private set; }
+        private JustDanceSetlist _jdSetlist;
+
+        internal JustDanceSetlist JustDanceSetlist
+        {
+            get { return _jdSetlist; }
+            set { _jdSetlist = value; }
+        }
 
 
         private List<Command> ValidCommands;
+        public string CurrentMessage;
+        private List<String> Mods;
+
 
         internal void Start()
         {
@@ -43,10 +56,16 @@ namespace FluzzBot
             ValidCommands.Add(new SongRequestCommand());
             ValidCommands.Add(new NextSongCommand());
             ValidCommands.Add(new SetlistLengthCommand());
+            ValidCommands.Add(new JustDanceNextSongCommand());
+            ValidCommands.Add(new JustDanceCurrentSetlistCommand());
+            ValidCommands.Add(new JustDanceSongRequestCommand());
+            ValidCommands.Add(new JustDanceClearSongCommand());
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
             _messagesToSend = new Queue<string>();
+            JustDanceSetlist = new JustDanceSetlist();
             SongList = new Setlist();
+            JustDanceSetlist.LoadSetlistFromDatabase();
             try
             {
                 Console.WriteLine("Starting FluzzBot");
@@ -86,6 +105,8 @@ namespace FluzzBot
                     writeThread.Start();
                     readThread.Start();
 
+                
+
             }
             catch (Exception)
             {
@@ -120,16 +141,42 @@ namespace FluzzBot
                 if(buffer.Contains("PRIVMSG #" + Credentials.ChannelName.ToLower() + " :"))
                 {
                     string substringKey = "#" + Credentials.ChannelName.ToLower() + " :";
+                    string twitchInfo = buffer.Substring(0, buffer.IndexOf(substringKey));
                     string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
-                    Console.WriteLine(userStrippedMsg);
 
+                   // Console.WriteLine(buffer);
+                    CurrentMessage = buffer;
 
                     foreach (Command command in ValidCommands)
                     {
                         if(userStrippedMsg.StartsWith(command.CommandName))
                         {
+
+                            //Mod only abilities
+                            if(command.RequireMod)
+                            {
+                                bool isMod = false;
+                                foreach (var mod in Mods)
+                                {
+                                    if (twitchInfo.Contains(mod))
+                                    {
+                                        isMod = true;
+                                        break;
+                                    }
+                                }
+                                if (!isMod)
+                                    if (!twitchInfo.Contains(Credentials.ChannelName.ToLower()))
+                                        continue;
+                            }
+
                             command.Execute(this, userStrippedMsg);
                         }
+                    }
+
+                    if (twitchInfo.Contains(";bits="))
+                    {
+                        BitsCheerCommand b = new BitsCheerCommand();
+                        b.Execute(this, userStrippedMsg);
                     }
 
                     //if(userStrippedMsg.StartsWith("!request"))
@@ -140,8 +187,25 @@ namespace FluzzBot
                     //    EnqueueMessage(_messagePrefix + "Adding " + song + " to requests!");
                     //}
                 }
+                else if(buffer.Contains("The moderators of this room are:"))
+                {
+                    string modList = buffer.Substring(buffer.IndexOf("The moderators of this room are: ") + "The moderators of this room are: ".Length);
 
-                Console.WriteLine(buffer);
+                    var mods = modList.Split(',');
+
+                    if (Mods == null)
+                        Mods = new List<string>();
+
+                    foreach (var mod in mods)
+                    {
+                        
+                        Mods.Add(mod.Trim(' '));
+                        Console.WriteLine("Addind {0} to mods",mod);
+                    }
+
+
+                    
+                }
             }
         }
 
@@ -153,7 +217,9 @@ namespace FluzzBot
             if(_messagesToSend == null)
                 _messagesToSend = new Queue<string>();
 
-            EnqueueMessage("PRIVMSG #" + Credentials.ChannelName.ToLower() + " :FluzzBot Online!");
+            EnqueueMessage("PRIVMSG #" + Credentials.ChannelName.ToLower() + " :FluzzBot Online! kadWave");
+            EnqueueMessage("CAP REQ :twitch.tv/commands");
+            ConstructAndEnqueueMessage("/mods");
             while (_isRunning)
             {
                 lock (_messagesToSend)
@@ -191,7 +257,8 @@ namespace FluzzBot
             IRCSocket = new TcpClient();
             try
             {
-                IRCSocket.Connect(_serverAddress, _serverPort);
+                var task = IRCSocket.ConnectAsync(_serverAddress, _serverPort);
+                task.Wait();
                 if(!IRCSocket.Connected)
                 {
                     throw new Exception("Tried to connect but couldnt");

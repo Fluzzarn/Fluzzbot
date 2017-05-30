@@ -10,6 +10,7 @@ namespace FluzzBot
     {
 
         string CommandName { get; set; }
+        bool RequireMod { get;  set; }
         bool Execute(FluzzBot bot, string message);
     }
 }

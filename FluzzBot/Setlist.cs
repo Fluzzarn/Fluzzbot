@@ -45,8 +45,8 @@ namespace FluzzBot
         {
             string justFinised = _CurrentSong.Name;
 
-           var conn = new MySql.Data.MySqlClient.MySqlConnection();
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3}", Credentials.DatabaseHost, Credentials.DatabaseUsername, Credentials.DatabasePassword, Credentials.DatabaseName);
+            var conn = new MySql.Data.MySqlClient.MySqlConnection();
+            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", Credentials.DatabaseHost, Credentials.DatabaseUsername, Credentials.DatabasePassword, Credentials.DatabaseName);
             conn.ConnectionString = connString;
             conn.Open();
             string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM current_setlist WHERE song_id LIKE(SELECT id FROM Songs WHERE Songs.title LIKE '" + justFinised + "') AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + Credentials.ChannelName + "')";
@@ -58,19 +58,19 @@ namespace FluzzBot
 
             cmd.BeginExecuteNonQuery();
             if (SongSetlist.Count >= 2)
-                {
+            {
+                SongSetlist.RemoveRange(0, 1);
+                _CurrentSong = SongSetlist[0];
+            }
+            else
+            {
+                if (SongSetlist.Count == 1)
                     SongSetlist.RemoveRange(0, 1);
-                    _CurrentSong = SongSetlist[0];
-                }
-                else
-                {
-                    if (SongSetlist.Count == 1)
-                        SongSetlist.RemoveRange(0, 1);
-                    _CurrentSong = null;
+                _CurrentSong = null;
 
-                }
-                return _CurrentSong;
-            
+            }
+            return _CurrentSong;
+
 
         }
 
@@ -89,7 +89,7 @@ namespace FluzzBot
 
                     Console.WriteLine(s.Name + " did not have a duration!");
                 }
-                
+
             }
 
             return ts;
@@ -98,7 +98,7 @@ namespace FluzzBot
         internal void LoadSetlistFromDatabase()
         {
             var conn = new MySql.Data.MySqlClient.MySqlConnection();
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3}", Credentials.DatabaseHost, Credentials.DatabaseUsername, Credentials.DatabasePassword, Credentials.DatabaseName);
+            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", Credentials.DatabaseHost, Credentials.DatabaseUsername, Credentials.DatabasePassword, Credentials.DatabaseName);
             conn.ConnectionString = connString;
             conn.Open();
             string queury = "SELECT * FROM Songs s WHERE s.id IN (SELECT song_id FROM current_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + Credentials.ChannelName + "'))";
@@ -134,6 +134,11 @@ namespace FluzzBot
             }
 
             conn.Close();
+        }
+
+        internal List<Song> GetSetlist()
+        {
+            return SongSetlist;
         }
     }
 }

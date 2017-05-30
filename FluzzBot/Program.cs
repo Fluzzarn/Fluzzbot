@@ -13,6 +13,11 @@ namespace FluzzBot
         static void Main(string[] args)
         {
 
+            if(args.Length > 0)
+            if(args[0] != "")
+            {
+                Credentials.ChannelName = args[0];
+            }
             FluzzBot bot = new FluzzBot();
 
             

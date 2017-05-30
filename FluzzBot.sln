@@ -1,8 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluzzBotCore", "FluzzBotCore\FluzzBotCore.csproj", "{090FEA8E-E81B-4548-8B7E-7F7B69E756BE}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluzzBot", "FluzzBot\FluzzBot.csproj", "{7E41796C-3899-4438-BDB9-C16E25EA346B}"
 EndProject
 Global
@@ -11,6 +13,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{090FEA8E-E81B-4548-8B7E-7F7B69E756BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{090FEA8E-E81B-4548-8B7E-7F7B69E756BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{090FEA8E-E81B-4548-8B7E-7F7B69E756BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{090FEA8E-E81B-4548-8B7E-7F7B69E756BE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7E41796C-3899-4438-BDB9-C16E25EA346B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7E41796C-3899-4438-BDB9-C16E25EA346B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E41796C-3899-4438-BDB9-C16E25EA346B}.Release|Any CPU.ActiveCfg = Release|Any CPU
