@@ -5,10 +5,12 @@ using System.Text;
 
 namespace FluzzBotCore
 {
-    class JustDanceNextSongCommand : Command
+    class JustDanceNextSongCommand : ICommand
     {
         public string CommandName { get => "!jdNext"; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }
+        public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
+        public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public bool Execute(FluzzBot.FluzzBot bot, string message)
         {

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,7 +46,10 @@ namespace FluzzBot
         }
 
 
-        private List<Command> ValidCommands;
+        private List<ICommand> ValidCommands;
+        public List<ICommand> Commands { get => ValidCommands; set { } }
+
+
         public string CurrentMessage;
         private Credentials _channelCredentials;
         public Credentials Credentials { get => _channelCredentials; set => throw new NotImplementedException(); }
@@ -59,16 +63,16 @@ namespace FluzzBot
 
         internal void Start()
         {
-            ValidCommands = new List<Command>();
+            ValidCommands = new List<ICommand>();
+            var type = typeof(ICommand);
+            foreach (var command in (AppDomain.CurrentDomain.GetAssemblies()
+    .SelectMany(s => s.GetTypes())
+    .Where(p => type.IsAssignableFrom(p) && p.IsClass)))
+            {
+                Console.WriteLine("Adding {0} to commands",command);
+                ValidCommands.Add(Activator.CreateInstance(command) as ICommand);
+            }
 
-            ValidCommands.Add(new SongRequestCommand());
-            ValidCommands.Add(new NextSongCommand());
-            ValidCommands.Add(new SetlistLengthCommand());
-            ValidCommands.Add(new JustDanceNextSongCommand());
-            ValidCommands.Add(new JustDanceCurrentSetlistCommand());
-            ValidCommands.Add(new JustDanceSongRequestCommand());
-            ValidCommands.Add(new JustDanceClearSongCommand());
-            ValidCommands.Add(new RoflbotrSenpaiCommand());
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
             _messagesToSend = new Queue<string>();
@@ -81,11 +85,6 @@ namespace FluzzBot
                 ConnectToTwitch();
                 LoginToTwitch();
 
-                //while (_isRunning)
-                //{
-                //    ChatMessageSendThread(_chatWriter);
-                //    ChatMessageRecievedThread(_chatReader, _networkStream);
-                //}
 
 
 
@@ -175,12 +174,15 @@ namespace FluzzBot
 #endif
                     CurrentMessage = buffer;
 
-                    foreach (Command command in ValidCommands)
+                    foreach (ICommand command in ValidCommands)
                     {
+
+                        if (command.CommandName == null)
+                            continue;
                         if(userStrippedMsg.StartsWith(command.CommandName))
                         {
 
-                            if(!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")))
+                            if(!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")) && command.RequireMod)
                             { 
                                         continue;
                             }
@@ -291,6 +293,26 @@ namespace FluzzBot
         {
            message = message.Insert(0, "PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :");
             EnqueueMessage(message);
+        }
+
+
+
+        public static class ReflectiveEnumerator
+        {
+            static ReflectiveEnumerator() { }
+
+            public static IEnumerable<T> GetEnumerableOfType<T>(params object[] constructorArgs) where T : class, IComparable<T>
+            {
+                List<T> objects = new List<T>();
+                foreach (Type type in
+                    Assembly.GetAssembly(typeof(T)).GetTypes()
+                    .Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(T))))
+                {
+                    objects.Add((T)Activator.CreateInstance(type, constructorArgs));
+                }
+                objects.Sort();
+                return objects;
+            }
         }
     }
 }

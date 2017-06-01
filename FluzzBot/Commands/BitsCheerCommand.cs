@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace FluzzBot
 {
-    class BitsCheerCommand : Command
+    class BitsCheerCommand : ICommand
 
     {
-        public string CommandName { get => "Cheer"; set => throw new NotImplementedException(); }
+        public string CommandName { get => null; set => throw new NotImplementedException(); }
         public bool RequireMod { get => false; set => throw new NotImplementedException(); }
+        public bool HasCooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public bool Execute(FluzzBot bot, string message)
         {

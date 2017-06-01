@@ -62,25 +62,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BitsCheerCommand.cs" />
-    <Compile Include="Command.cs" />
+    <Compile Include="Commands\BitsCheerCommand.cs" />
+    <Compile Include="Commands\Command.cs" />
+    <Compile Include="Commands\ICommand.cs" />
+    <Compile Include="Commands\DadJokeCommand.cs" />
+    <Compile Include="Commands\SetCooldownCommand.cs" />
     <Compile Include="Credentials.cs" />
-    <Compile Include="CurrentSetlistCommand.cs" />
+    <Compile Include="Commands\CurrentSetlistCommand.cs" />
     <Compile Include="DatabaseCredentials.cs" />
     <Compile Include="FluzzBot.cs" />
-    <Compile Include="JustDanceClearSongCommand.cs" />
-    <Compile Include="JustDanceCurrentSetlistCommand.cs" />
-    <Compile Include="JustDanceNextSongCommand.cs" />
+    <Compile Include="Commands\JustDanceClearSongCommand.cs" />
+    <Compile Include="Commands\JustDanceCurrentSetlistCommand.cs" />
+    <Compile Include="Commands\JustDanceNextSongCommand.cs" />
     <Compile Include="JustDanceSetlist.cs" />
-    <Compile Include="JustDanceSongRequestCommand.cs" />
-    <Compile Include="NextSongCommand.cs" />
+    <Compile Include="Commands\JustDanceSongRequestCommand.cs" />
+    <Compile Include="Commands\NextSongCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RoflbotrSenpaiCommand.cs" />
+    <Compile Include="Commands\RoflbotrSenpaiCommand.cs" />
     <Compile Include="Setlist.cs" />
-    <Compile Include="SetlistLengthCommand.cs" />
+    <Compile Include="Commands\SetlistLengthCommand.cs" />
     <Compile Include="Song.cs" />
-    <Compile Include="SongRequestCommand.cs" />
+    <Compile Include="Commands\SongRequestCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />

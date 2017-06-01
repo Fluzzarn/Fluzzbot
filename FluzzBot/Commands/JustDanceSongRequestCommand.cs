@@ -6,11 +6,13 @@ using System.Text;
 
 namespace FluzzBotCore
 {
-    class JustDanceSongRequestCommand : Command
+    class JustDanceSongRequestCommand : ICommand
     {
         private string _commandName = "!jdRequest";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }
+        public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
+        public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public bool Execute(FluzzBot.FluzzBot bot, string message)
         {

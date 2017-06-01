@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 
 namespace FluzzBot
 {
-    class JustDanceClearSongCommand : Command
+    class JustDanceClearSongCommand : ICommand
     {
         public string CommandName { get => "!jdRemove"; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }
+        public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
+        public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public bool Execute(FluzzBot bot, string message)
         {

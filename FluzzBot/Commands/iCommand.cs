@@ -6,11 +6,16 @@ using System.Threading.Tasks;
 
 namespace FluzzBot
 {
-    public interface Command
+    public interface ICommand
     {
+
+
+        
 
         string CommandName { get; set; }
         bool RequireMod { get;  set; }
+        bool HasCooldown { get; set; }
+        int Cooldown { get; set; }
         bool Execute(FluzzBot bot, string message);
     }
 }
