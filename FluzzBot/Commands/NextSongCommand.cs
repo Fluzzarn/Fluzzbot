@@ -14,15 +14,15 @@ namespace FluzzBot
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public bool Execute(FluzzBot bot, string message)
+        public bool Execute(FluzzBot bot, string message,string username)
         {
             try
             {
-                bot.SongList.NextSong();
+                bot.SongList.NextSong(username);
                 if (bot.SongList.CurrentSong() == null)
-                    bot.ConstructAndEnqueueMessage("Current no songs in the setlist!");
+                    bot.ConstructAndEnqueueMessage("Current no songs in the setlist!",username);
                 else
-                    bot.ConstructAndEnqueueMessage("Next Song is: " + bot.SongList.CurrentSong());
+                    bot.ConstructAndEnqueueMessage("Next Song is: " + bot.SongList.CurrentSong(),username);
             }
             catch (Exception)
             {

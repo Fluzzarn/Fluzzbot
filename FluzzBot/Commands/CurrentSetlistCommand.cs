@@ -8,12 +8,12 @@ namespace FluzzBot
 {
     class CurrentSetlistCommand : ICommand
     {
-        public string CommandName { get => "!currentsetlist"; set => throw new NotImplementedException(); }
+        public string CommandName { get => "!currentSetlist"; set => throw new NotImplementedException(); }
         public bool RequireMod { get => false; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public bool Execute(FluzzBot bot, string message)
+        public bool Execute(FluzzBot bot, string message,string username)
         {
             string messageToSend = "Current songs in the setlist are:";
             List<Song> songs = bot.SongList.GetSetlist();
@@ -25,7 +25,7 @@ namespace FluzzBot
 
            if(songs.Count > 0)  messageToSend.Remove(messageToSend.Length - 1, 1);
 
-            bot.ConstructAndEnqueueMessage(messageToSend);
+            bot.ConstructAndEnqueueMessage(messageToSend,username);
             return true;
         }
     }

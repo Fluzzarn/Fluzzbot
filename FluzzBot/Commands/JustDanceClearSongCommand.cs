@@ -14,14 +14,14 @@ namespace FluzzBot
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public bool Execute(FluzzBot bot, string message)
+        public bool Execute(FluzzBot bot, string message,string username)
         {
             JustDanceSetlist set = bot.JustDanceSetlist;
             string song = message.Substring(CommandName.Length + 1);
-            bool result = set.RemoveSong(song);
+            bool result = set.RemoveSong(song,username);
             string sentMessage = "";
             if (result) sentMessage = ("Removed " + song + " from the queue"); else sentMessage = ("Could not remove song from queue, yell at Fluzzarn");
-                bot.ConstructAndEnqueueMessage(sentMessage);
+                bot.ConstructAndEnqueueMessage(sentMessage,username);
 
             return true;
         }

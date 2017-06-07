@@ -14,7 +14,7 @@ namespace FluzzBot
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public bool Execute(FluzzBot bot, string message)
+        public bool Execute(FluzzBot bot, string message,string username)
         {
 
             
@@ -52,7 +52,7 @@ namespace FluzzBot
             {
                 stringMessage += " long!";
             }
-            bot.ConstructAndEnqueueMessage(stringMessage);
+            bot.ConstructAndEnqueueMessage(stringMessage,username);
             return true;
         }
     }

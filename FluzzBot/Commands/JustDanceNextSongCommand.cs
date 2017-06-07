@@ -12,14 +12,14 @@ namespace FluzzBotCore
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public bool Execute(FluzzBot.FluzzBot bot, string message)
+        public bool Execute(FluzzBot.FluzzBot bot, string message,string username)
         {
-            string song = bot.JustDanceSetlist.NextSong();
+            string song = bot.JustDanceSetlist.NextSong(username);
 
             if (song == null)
-                bot.ConstructAndEnqueueMessage("Setlist is empty!");
+                bot.ConstructAndEnqueueMessage("Setlist is empty!",username);
             else
-                bot.ConstructAndEnqueueMessage("Next song is " + song);
+                bot.ConstructAndEnqueueMessage("Next song is " + song,username);
             return true;
         }
     }

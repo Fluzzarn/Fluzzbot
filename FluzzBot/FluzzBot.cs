@@ -1,4 +1,5 @@
 ﻿
+using FluzzBot.Markov;
 using FluzzBotCore;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ namespace FluzzBot
 {
     public class FluzzBot
     {
+        private Dictionary<string, string> _markovTextDict;
+        public Dictionary<string, string> MarkovText { get =>  _markovTextDict; set { } }
 
         TcpClient IRCSocket;
         String _serverAddress;
@@ -29,7 +32,6 @@ namespace FluzzBot
         private StreamWriter _chatWriter;
         private NetworkStream _networkStream;
         private  bool _isRunning;
-        private string _messagePrefix;
         public  bool IsRunning
         {
             get { return _isRunning; }
@@ -52,12 +54,12 @@ namespace FluzzBot
 
         public string CurrentMessage;
         private Credentials _channelCredentials;
-        public Credentials Credentials { get => _channelCredentials; set => throw new NotImplementedException(); }
 
 
         public FluzzBot(Credentials c)
         {
             _channelCredentials = c;
+            _markovTextDict = new Dictionary<string, string>();
         }
 
 
@@ -73,12 +75,14 @@ namespace FluzzBot
                 ValidCommands.Add(Activator.CreateInstance(command) as ICommand);
             }
 
+
+            
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
             _messagesToSend = new Queue<string>();
             JustDanceSetlist = new JustDanceSetlist(this);
             SongList = new Setlist(this);
-            JustDanceSetlist.LoadSetlistFromDatabase();
+            JustDanceSetlist.LoadSetlistFromDatabase("misskaddykins");
             try
             {
                 Console.WriteLine("Starting FluzzBot");
@@ -123,7 +127,7 @@ namespace FluzzBot
                     _isRunning = true;
 
 
-                SongList.LoadSetlistFromDatabase();
+                //SongList.LoadSetlistFromDatabase();
 
 
 
@@ -152,25 +156,60 @@ namespace FluzzBot
                 buffer = chatReader.ReadLine();
                 if(buffer.Split(' ')[1] == "001")
                 {
-                    WriteToStream("JOIN #" + _channelCredentials.ChannelName.ToLower());
-                    _messagePrefix = "PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :";
+
+                    {
+                        var file = File.ReadAllLines("./users.txt").ToList();
+                        foreach (var channel in file)
+                        {
+                            WriteToStream("JOIN #" + channel.ToLower());
+                            _markovTextDict.Add(channel.ToLower(), "");
+
+                            string filePath = "./markov/" + channel.ToLower() + ".txt";
+
+                            if(File.Exists(filePath))
+                            {
+                                _markovTextDict[channel.ToLower()] = File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                File.Create(filePath);
+                            }
+                            System.Timers.Timer t = new System.Timers.Timer(900000);
+
+
+                            t.Elapsed += (sender, args) => {
+                                lock (_markovTextDict)
+                                {
+                                    File.WriteAllText("./markov/" + channel.ToLower() + ".txt", _markovTextDict[channel.ToLower()]);
+                                }
+                                t.Start();
+
+                            };
+
+                            t.Start();
+                        }
+
+                    }
                 }
 
                 if (buffer.Contains("PING :"))
                 {
                     
                     WriteToStream("PONG :tmi.twitch.tv");
-                }
 
-                //Actual Chat Messages
-                if(buffer.Contains("PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :"))
+                }
+                else if(buffer.Contains("PRIVMSG #"))
                 {
-                    string substringKey = "#" + _channelCredentials.ChannelName.ToLower() + " :";
+
+
+                    string username = buffer.Substring(buffer.IndexOf("PRIVMSG #"));
+                    username = username.Substring(9, username.IndexOf(':') - 10);
+                    string substringKey = "#" + username + " :";
                     string twitchInfo = buffer.Substring(0, buffer.IndexOf(substringKey));
-                    string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
+                   string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
 
 #if DEBUG
-            global::System.Console.WriteLine(buffer);
+                    global::System.Console.WriteLine(buffer);
 #endif
                     CurrentMessage = buffer;
 
@@ -184,20 +223,46 @@ namespace FluzzBot
 
                             if(!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")) && command.RequireMod)
                             { 
+                                if(!buffer.Contains(";display-name=Fluzzarn;"))
                                         continue;
                             }
 
-                            command.Execute(this, userStrippedMsg);
+                            command.Execute(this, userStrippedMsg,username);
                         }
                     }
 
                     if (twitchInfo.Contains(";bits="))
                     {
                         BitsCheerCommand b = new BitsCheerCommand();
-                        b.Execute(this, userStrippedMsg);
+                        b.Execute(this, userStrippedMsg,username);
+                    }
+
+                    lock (_markovTextDict)
+                    {
+                        if(!username.Contains("bot"))
+                        _markovTextDict[username] += userStrippedMsg + " ";
+                  
                     }
 
                 }
+                else if(buffer.Contains("USERNOTICE"))
+                {
+                    string username = buffer.Substring(buffer.IndexOf("USERNOTICE #"));
+                    username = username.Substring("USERNOTICE #".Length, username.IndexOf(':') - "USERNOTICE #".Length + 1);
+                    if (username == "misskaddykins")
+                    {
+
+                        if (buffer.Contains("msg-param-sub-plan=2000"))
+                            ConstructAndEnqueueMessage("kadWotInTarnation WELCOME TO THE KADDY SALOON kadWotInTarnation",username);
+                        else
+                        {
+                            ConstructAndEnqueueMessage("kadHype WELCOME TO THE KADDY SHACK kadHype",username);
+
+                        }
+                        ConstructAndEnqueueMessage("kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype ",username);
+                    }
+                }
+
 
             }
         }
@@ -210,11 +275,8 @@ namespace FluzzBot
             if(_messagesToSend == null)
                 _messagesToSend = new Queue<string>();
 
-            //EnqueueMessage("PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :FluzzBot Online! kadWave");
             EnqueueMessage("CAP REQ :twitch.tv/commands");
             EnqueueMessage("CAP REQ :twitch.tv/tags");
-
-
             ConstructAndEnqueueMessage("/mods");
             while (_isRunning)
             {
@@ -232,10 +294,7 @@ namespace FluzzBot
                             //_chatWriter.Flush();
                             WriteToStream(command);
 
-                            if (command == "PART #" + _channelCredentials.ChannelName)
-                            {
-                                _isRunning = false;
-                            }
+
 
                             timer.Stop();
                             timer.Reset();
@@ -281,6 +340,15 @@ namespace FluzzBot
             }
         }
 
+        public void EnqueuMessage(String message, String username)
+        {
+            lock (_messagesToSend)
+            {
+                Console.WriteLine("Enqueuing " + message);
+                _messagesToSend.Enqueue(message);
+            }
+        }
+
 
         private void WriteToStream(String message)
         {
@@ -295,7 +363,11 @@ namespace FluzzBot
             EnqueueMessage(message);
         }
 
-
+        public void ConstructAndEnqueueMessage(String message, String username)
+        {
+            message = message.Insert(0, "PRIVMSG #" + username.ToLower() + " :");
+            EnqueueMessage(message);
+        }
 
         public static class ReflectiveEnumerator
         {

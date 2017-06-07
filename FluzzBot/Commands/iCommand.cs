@@ -16,6 +16,6 @@ namespace FluzzBot
         bool RequireMod { get;  set; }
         bool HasCooldown { get; set; }
         int Cooldown { get; set; }
-        bool Execute(FluzzBot bot, string message);
+        bool Execute(FluzzBot bot, string message, string username);
     }
 }

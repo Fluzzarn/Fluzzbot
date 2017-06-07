@@ -26,7 +26,7 @@ namespace FluzzBot.Commands
             _requireMod = true;
         }
 
-        public bool Execute(FluzzBot bot, string message)
+        public bool Execute(FluzzBot bot, string message,string username)
         {
             try
             {
@@ -39,46 +39,20 @@ namespace FluzzBot.Commands
                         command.HasCooldown = true;
                         int newDuration = Convert.ToInt32(message.Split(' ')[2]);
                         command.Cooldown = newDuration;
+                        string insertStatement = "INSERT into command_cooldown(user_id,command_name,cooldown) SELECT Usernames.user_id, @toChange , @toChange FROM Usernames WHERE username LIKE @username";
+
+                        string updateStatement = "UPDATE command_cooldown SET cooldown = @newDuration WHERE command_name LIKE @toChange AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
+
+                        int rows = MySQLHelper.RunSQLRequest(insertStatement, new Dictionary<string, string>() { { "@toChange", toChange }, { "@newDuration", newDuration.ToString() }, { "@username", username } });
 
 
-
-
-
-
-                        MySql.Data.MySqlClient.MySqlConnection conn;
-                        var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
-                        conn = new MySql.Data.MySqlClient.MySqlConnection();
-                        conn.ConnectionString = connString;
-                        conn.Open();
-
-
-                        string insertStatement = "INSERT into command_cooldown(user_id,command_name,cooldown) SELECT Usernames.user_id,'" + toChange + "'," + newDuration + " FROM Usernames WHERE username LIKE '" + bot.Credentials.ChannelName + "'";
-                        string updateStatement = "UPDATE command_cooldown SET cooldown = " + newDuration + " WHERE command_name LIKE '" + toChange + "' AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + bot.Credentials.ChannelName + "')";
-                        
-                        Console.WriteLine(insertStatement);
-                        MySqlCommand cmd = new MySqlCommand();
-                        cmd.CommandText = updateStatement;
-                        cmd.Connection = conn;
-
-                        int rows = cmd.ExecuteNonQuery();
-
-
-                        if(rows < 1)
+                        if (rows < 1)
                         {
-                            cmd.CommandText = insertStatement;
-                            cmd.ExecuteNonQuery();
+                            MySQLHelper.RunSQLRequest(updateStatement, new Dictionary<string, string>() { { "@toChange", toChange }, { "@newDuration", newDuration.ToString() }, { "@username", username } });
                         }
 
 
                         bot.ConstructAndEnqueueMessage("Successfully changed command's cooldown");
-
-                        conn.Close();
-
-
-
-
-
-
                         return true;
                     }
                 }

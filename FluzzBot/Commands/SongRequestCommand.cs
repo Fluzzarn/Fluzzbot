@@ -15,77 +15,61 @@ namespace FluzzBot
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public bool Execute(FluzzBot bot,string message)
+        public bool Execute(FluzzBot bot,string message,string username)
         {
             string song = message.Substring(message.IndexOf(' ') + 1);
-            Song dbSong= GetSongFromDatabase(song, bot);
+            Song dbSong= GetSongFromDatabase(song, bot,username);
 
             if(dbSong != null)
             {
                 bot.SongList.AddSongToSetlist(dbSong);
-                bot.ConstructAndEnqueueMessage(dbSong.Name + " has been added to the setlist");
+                bot.ConstructAndEnqueueMessage(dbSong.Name + " has been added to the setlist",username);
             }
             else
             {
-                bot.ConstructAndEnqueueMessage("Could not find the song " + song + " in the database or " + bot.Credentials.ChannelName + " does not own the song!");
+                bot.ConstructAndEnqueueMessage("Could not find the song " + song + " in the database or " + username + " does not own the song!",username);
             }
             return true;
         }
 
-        private Song GetSongFromDatabase(string message, FluzzBot bot)
+        private Song GetSongFromDatabase(string message, FluzzBot bot,string username)
         {
             Song s = null;
-            MySql.Data.MySqlClient.MySqlConnection conn;
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
-
             try
             {
-                conn = new MySql.Data.MySqlClient.MySqlConnection();
-                conn.ConnectionString = connString;
-                conn.Open();
-
-                string queury = "SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + bot.Credentials.ChannelName + "'";
 
 
-                Console.WriteLine(queury);
-
-                MySqlCommand cmd = new MySqlCommand();
-                cmd.CommandText = queury;
-                cmd.Connection = conn;
-
-
-                MySqlDataReader dataReader = cmd.ExecuteReader();
+                MySqlDataReader dataReader= MySQLHelper.GetSQLDataFromDatabase("SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE @message AND username LIKE @username", new Dictionary<string, string>() { {"@message",message },{"@username",username } });
                 
                 if(dataReader.HasRows)
                 {
                     while (dataReader.Read())
                     {
-                        s = new Song();
-                        s.Name = (string)(dataReader["title"]);
-                        s.Guitar = (int)dataReader["guitar"];
-                        s.Bass = (int)dataReader["bass"];
-                        s.Drums = (int)dataReader["drums"];
-                        s.Vocals = (int)dataReader["vocals"];
-                        s.Artist = (string)dataReader["artist"];
-                        s.BPM = int.Parse((string)dataReader["bpm"]);
-                        s.Gender = ((string)dataReader["gender"])[0];
-                        s.Genre = (string)dataReader["genre"];
-                        s.Released = DateTime.Parse((string)dataReader["released"]);
-                        s.VocalParts = (int)dataReader["vocalParts"];
-                        s.FreestyleGuitar = (string)dataReader["freestyleGuitar"] == "yes";
-                        s.FreestyleVocals = (string)dataReader["freestyleVocals"] == "yes";
-                        s.Duration = (int)TimeSpan.Parse((string)("00:" + dataReader["duration"])).TotalSeconds;
+                        s = new Song()
+                        {
+                            Name = (string)(dataReader["title"]),
+                            Guitar = (int)dataReader["guitar"],
+                            Bass = (int)dataReader["bass"],
+                            Drums = (int)dataReader["drums"],
+                            Vocals = (int)dataReader["vocals"],
+                            Artist = (string)dataReader["artist"],
+                            BPM = int.Parse((string)dataReader["bpm"]),
+                            Gender = ((string)dataReader["gender"])[0],
+                            Genre = (string)dataReader["genre"],
+                            Released = DateTime.Parse((string)dataReader["released"]),
+                            VocalParts = (int)dataReader["vocalParts"],
+                            FreestyleGuitar = (string)dataReader["freestyleGuitar"] == "yes",
+                            FreestyleVocals = (string)dataReader["freestyleVocals"] == "yes",
+                            Duration = (int)TimeSpan.Parse((string)("00:" + dataReader["duration"])).TotalSeconds
+                        };
                     }
 
                     dataReader.Close();
-                    string setListUpdate = "INSERT INTO current_setlist (user_id,song_id) SELECT Usernames.user_id,Songs.id FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + bot.Credentials.ChannelName + "'";
+                    string setListUpdate = "INSERT INTO current_setlist (user_id,song_id) SELECT Usernames.user_id,Songs.id FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE '" + message + "' AND username LIKE '" + username + "'";
 
-                    Console.WriteLine(setListUpdate);
-                    cmd.CommandText = setListUpdate;
-                    cmd.ExecuteNonQuery();
+                    MySQLHelper.RunSQLRequest("INSERT INTO current_setlist (user_id,song_id) SELECT Usernames.user_id,Songs.id FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE @message AND username LIKE @username", new Dictionary<string, string> { { "@message", message }, { "@username", username } });
+
                 }
-
-                conn.Close();
             }
             catch (Exception ex)
             {

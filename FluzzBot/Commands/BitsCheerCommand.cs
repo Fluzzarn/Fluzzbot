@@ -14,9 +14,10 @@ namespace FluzzBot
         public bool HasCooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public bool Execute(FluzzBot bot, string message)
+        public bool Execute(FluzzBot bot, string message,string username)
         {
-            bot.ConstructAndEnqueueMessage("kadCheer kadCheer THANKS FOR THE BITTIES kadCheer kadCheer");
+            if(username == "misskaddykins")
+            bot.ConstructAndEnqueueMessage("kadCheer kadCheer THANKS FOR THE BITTIES kadCheer kadCheer",username);
             return true;
         }
     }

@@ -45,22 +45,12 @@ namespace FluzzBot
         }
 
 
-        public Song NextSong()
+        public Song NextSong(string username)
         {
             string justFinised = _CurrentSong.Name;
+            string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM current_setlist WHERE song_id LIKE(SELECT id FROM Songs WHERE Songs.title LIKE @justFinished) AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
 
-            var conn = new MySql.Data.MySqlClient.MySqlConnection();
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
-            conn.ConnectionString = connString;
-            conn.Open();
-            string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM current_setlist WHERE song_id LIKE(SELECT id FROM Songs WHERE Songs.title LIKE '" + justFinised + "') AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + bot.Credentials.ChannelName + "')";
-
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.CommandText = queury;
-            cmd.Connection = conn;
-
-
-            cmd.BeginExecuteNonQuery();
+            MySQLHelper.RunSQLRequest(queury, new Dictionary<string, string>() { { "@justFinished", justFinised }, { "@username", username } });
             if (SongSetlist.Count >= 2)
             {
                 SongSetlist.RemoveRange(0, 1);
@@ -88,7 +78,7 @@ namespace FluzzBot
                 {
                     ts = ts.Add(new TimeSpan(0, 0, s.Duration));
                 }
-                catch (NullReferenceException ex)
+                catch (NullReferenceException)
                 {
 
                     Console.WriteLine(s.Name + " did not have a duration!");
@@ -99,45 +89,39 @@ namespace FluzzBot
             return ts;
         }
 
-        internal void LoadSetlistFromDatabase()
+        internal void LoadSetlistFromDatabase(string username)
         {
-            var conn = new MySql.Data.MySqlClient.MySqlConnection();
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
-            conn.ConnectionString = connString;
-            conn.Open();
-            string queury = "SELECT * FROM Songs s WHERE s.id IN (SELECT song_id FROM current_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + bot.Credentials.ChannelName + "'))";
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.CommandText = queury;
-            cmd.Connection = conn;
 
-            MySqlDataReader dataReader = cmd.ExecuteReader();
+            string queury = "SELECT * FROM Songs s WHERE s.id IN (SELECT song_id FROM current_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username))";
+
+            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", username } });
 
             if (dataReader.HasRows)
             {
                 while (dataReader.Read())
                 {
-                    Song s = new Song();
-                    s.Name = (string)(dataReader["title"]);
-                    s.Guitar = (int)dataReader["guitar"];
-                    s.Bass = (int)dataReader["bass"];
-                    s.Drums = (int)dataReader["drums"];
-                    s.Vocals = (int)dataReader["vocals"];
-                    s.Artist = (string)dataReader["artist"];
-                    s.BPM = int.Parse((string)dataReader["bpm"]);
-                    s.Gender = ((string)dataReader["gender"])[0];
-                    s.Genre = (string)dataReader["genre"];
-                    s.Released = DateTime.Parse((string)dataReader["released"]);
-                    s.VocalParts = (int)dataReader["vocalParts"];
-                    s.FreestyleGuitar = (string)dataReader["freestyleGuitar"] == "yes";
-                    s.FreestyleVocals = (string)dataReader["freestyleVocals"] == "yes";
-                    s.Duration = (int)TimeSpan.Parse((string)("00:" + dataReader["duration"])).TotalSeconds;
+                    Song s = new Song()
+                    {
+                        Name = (string)(dataReader["title"]),
+                        Guitar = (int)dataReader["guitar"],
+                        Bass = (int)dataReader["bass"],
+                        Drums = (int)dataReader["drums"],
+                        Vocals = (int)dataReader["vocals"],
+                        Artist = (string)dataReader["artist"],
+                        BPM = int.Parse((string)dataReader["bpm"]),
+                        Gender = ((string)dataReader["gender"])[0],
+                        Genre = (string)dataReader["genre"],
+                        Released = DateTime.Parse((string)dataReader["released"]),
+                        VocalParts = (int)dataReader["vocalParts"],
+                        FreestyleGuitar = (string)dataReader["freestyleGuitar"] == "yes",
+                        FreestyleVocals = (string)dataReader["freestyleVocals"] == "yes",
+                        Duration = (int)TimeSpan.Parse((string)("00:" + dataReader["duration"])).TotalSeconds
+                    };
                     SongSetlist.Add(s);
                 }
                 SongSetlist.Reverse();
                 dataReader.Close();
             }
-
-            conn.Close();
         }
 
         internal List<Song> GetSetlist()

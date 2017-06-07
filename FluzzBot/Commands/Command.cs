@@ -16,31 +16,25 @@ namespace FluzzBot.Commands
         protected bool _hasCooldown;
         protected int _cooldown;
         protected bool _onCooldown;
-        protected Timer _timer;
+        protected Dictionary<string, int> _cooldownDict;
+        protected Dictionary<string, bool> _onCoolDownDict;
+        protected Dictionary<string, Timer> _timerDict;
 
-
-        public void Execute(FluzzBot bot)
+        public void Execute(FluzzBot bot,string username)
         {
-            if (_hasCooldown && _timer == null)
+            if(_onCoolDownDict == null)
+            {
+                _cooldownDict = new Dictionary<string, int>();
+                _onCoolDownDict = new Dictionary<string, bool>();
+                _timerDict = new Dictionary<string, Timer>();
+            }
+            if (_hasCooldown)
             {
                 _onCooldown = false;
 
-                MySql.Data.MySqlClient.MySqlConnection conn;
-                var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
-                conn = new MySql.Data.MySqlClient.MySqlConnection();
-                conn.ConnectionString = connString;
-                conn.Open();
+                string selectStatement = "SELECT * FROM command_cooldown WHERE user_id LIKE(SELECT user_id from Usernames WHERE username LIKE @username)";
 
-
-                string selectStatement = "SELECT * FROM command_cooldown WHERE user_id LIKE(SELECT user_id from Usernames WHERE username LIKE '" + bot.Credentials.ChannelName + "')";
-
-                Console.WriteLine(selectStatement);
-                MySqlCommand cmd = new MySqlCommand();
-                cmd.CommandText = selectStatement;
-                cmd.Connection = conn;
-
-
-                MySqlDataReader dataReader = cmd.ExecuteReader();
+                MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(selectStatement, new Dictionary<string, string>() { { "@username", username } });
 
                 if (dataReader.HasRows)
                 {
@@ -49,33 +43,38 @@ namespace FluzzBot.Commands
 
                         if((string)(dataReader["command_name"]) == _commandName)
                         {
-                            _cooldown = (int)dataReader["cooldown"];
+                            _cooldownDict[username] = (int)dataReader["cooldown"];
                             _hasCooldown = true;
                             break;
                         }
                         else
                         {
+                            _cooldownDict[username] = _cooldown;
                             continue;
                         }
 
                     }
                 }
+                else
+                {
+                    _cooldownDict[username] = _cooldown;
 
-                conn.Close();
+                }
 
 
 
-
-                _timer = new Timer(_cooldown * 1000);
-                _timer.Elapsed += _timer_Elapsed;
+                if(!_timerDict.ContainsKey(username))
+                    _timerDict[username] = new Timer(_cooldownDict[username] * 1000);
             }
         }
 
-        private void _timer_Elapsed(object sender, ElapsedEventArgs e)
+
+        protected void _timer_Elapsed(object sender, ElapsedEventArgs e, string username)
         {
+            _onCoolDownDict[username] = false;
             _onCooldown = false;
-            _timer.Interval = _cooldown * 1000;
-            _timer.Stop();
+            _timerDict[username].Interval = _cooldownDict[username] * 1000;
+            _timerDict[username].Stop();
         }
     }
 }

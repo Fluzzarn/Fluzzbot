@@ -14,7 +14,6 @@ namespace FluzzBot
         static void Main(string[] args)
         {
             Credentials fluzzarn = new Credentials();
-            Credentials misskaddykins = new Credentials();
             if (args.Length > 0)
             if(args[0] != "")
             {
@@ -22,9 +21,7 @@ namespace FluzzBot
             }
 
 
-            misskaddykins.ChannelName = "misskaddykins";
             FluzzBot bot = new FluzzBot(fluzzarn);
-            FluzzBot bot2 = new FluzzBot(misskaddykins);
             bot.Start();
             //Thread th = new Thread(() => bot.Start());
             ////Thread th2 = new Thread(() => bot2.Start());

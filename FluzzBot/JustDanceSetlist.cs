@@ -23,7 +23,7 @@ namespace FluzzBot
             Songs.Add(songName);
         }
 
-        public string NextSong()
+        public string NextSong(string username)
         {
             if(Songs.Count == 1)
             {
@@ -43,48 +43,28 @@ namespace FluzzBot
                 current_song = null;
 
             }
+            string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM justdance_setlist WHERE song_name LIKE @current_song AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
+            MySQLHelper.RunSQLRequest(queury, new Dictionary<string, string>() { { "@current_song", current_song }, { "@username", username } });
 
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
-            var conn = new MySql.Data.MySqlClient.MySqlConnection();
-            conn.ConnectionString = connString;
-            conn.Open();
-            string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM justdance_setlist WHERE song_name LIKE'" + current_song + "' AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + bot.Credentials.ChannelName + "')";
-
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.CommandText = queury;
-            cmd.Connection = conn;
-
-
-            cmd.ExecuteNonQuery();
-            conn.Close();
             return current_song;
         }
 
-        public void LoadSetlistFromDatabase()
+        public void LoadSetlistFromDatabase(string username)
         {
-            var conn = new MySql.Data.MySqlClient.MySqlConnection();
-            var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
-            conn.ConnectionString = connString;
-            conn.Open();
-            string queury = "SELECT * FROM justdance_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + bot.Credentials.ChannelName + "')";
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.CommandText = queury;
-            cmd.Connection = conn;
+            string queury = "SELECT * FROM justdance_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
 
-            MySqlDataReader dataReader = cmd.ExecuteReader();
 
+            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", username } });
             if (dataReader.HasRows)
             {
                 while (dataReader.Read())
                 {
                     Songs.Add((string)dataReader["song_name"]);
-
+                    Console.WriteLine("Adding {0} to just dance setlist", (string)dataReader["song_name"]);
                 }
-                Songs.Reverse();
                 dataReader.Close();
             }
 
-            conn.Close();
         }
 
         public List<string> GetSetlist()
@@ -92,26 +72,13 @@ namespace FluzzBot
             return Songs;
         }
 
-        public bool RemoveSong(string name)
+        public bool RemoveSong(string name,string username)
         {
             if (Songs.Contains(name))
             {
                 Songs.RemoveAll((x) => x == name);
-                var connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
-                var conn = new MySql.Data.MySqlClient.MySqlConnection();
-                conn.ConnectionString = connString;
-                conn.Open();
-                string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM justdance_setlist WHERE song_name LIKE'" + name + "' AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like '" + bot.Credentials.ChannelName + "')";
-                MySqlCommand cmd = new MySqlCommand();
-                cmd.CommandText = queury;
-                cmd.Connection = conn;
-
-
-               int rows = cmd.ExecuteNonQuery();
-                conn.Close();
-
-
-                return rows>=1;
+                string queury = "SET SQL_SAFE_UPDATES = 0;DELETE FROM justdance_setlist WHERE song_name LIKE @name AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
+                return MySQLHelper.RunSQLRequest(queury, new Dictionary<string, string>() { { "@name", name }, { "@username", username } })>= 1;
             }
             return false;
         }
