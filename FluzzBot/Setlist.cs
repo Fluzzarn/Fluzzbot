@@ -94,34 +94,34 @@ namespace FluzzBot
 
             string queury = "SELECT * FROM Songs s WHERE s.id IN (SELECT song_id FROM current_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username))";
 
-            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", username } });
+            //MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", username } });
 
-            if (dataReader.HasRows)
-            {
-                while (dataReader.Read())
-                {
-                    Song s = new Song()
-                    {
-                        Name = (string)(dataReader["title"]),
-                        Guitar = (int)dataReader["guitar"],
-                        Bass = (int)dataReader["bass"],
-                        Drums = (int)dataReader["drums"],
-                        Vocals = (int)dataReader["vocals"],
-                        Artist = (string)dataReader["artist"],
-                        BPM = int.Parse((string)dataReader["bpm"]),
-                        Gender = ((string)dataReader["gender"])[0],
-                        Genre = (string)dataReader["genre"],
-                        Released = DateTime.Parse((string)dataReader["released"]),
-                        VocalParts = (int)dataReader["vocalParts"],
-                        FreestyleGuitar = (string)dataReader["freestyleGuitar"] == "yes",
-                        FreestyleVocals = (string)dataReader["freestyleVocals"] == "yes",
-                        Duration = (int)TimeSpan.Parse((string)("00:" + dataReader["duration"])).TotalSeconds
-                    };
-                    SongSetlist.Add(s);
-                }
-                SongSetlist.Reverse();
-                dataReader.Close();
-            }
+            //if (dataReader.HasRows)
+            //{
+            //    while (dataReader.Read())
+            //    {
+            //        Song s = new Song()
+            //        {
+            //            Name = (string)(dataReader["title"]),
+            //            Guitar = (int)dataReader["guitar"],
+            //            Bass = (int)dataReader["bass"],
+            //            Drums = (int)dataReader["drums"],
+            //            Vocals = (int)dataReader["vocals"],
+            //            Artist = (string)dataReader["artist"],
+            //            BPM = int.Parse((string)dataReader["bpm"]),
+            //            Gender = ((string)dataReader["gender"])[0],
+            //            Genre = (string)dataReader["genre"],
+            //            Released = DateTime.Parse((string)dataReader["released"]),
+            //            VocalParts = (int)dataReader["vocalParts"],
+            //            FreestyleGuitar = (string)dataReader["freestyleGuitar"] == "yes",
+            //            FreestyleVocals = (string)dataReader["freestyleVocals"] == "yes",
+            //            Duration = (int)TimeSpan.Parse((string)("00:" + dataReader["duration"])).TotalSeconds
+            //        };
+            //        SongSetlist.Add(s);
+            //    }
+            //    SongSetlist.Reverse();
+            //    dataReader.Close();
+            //}
         }
 
         internal List<Song> GetSetlist()

@@ -71,6 +71,7 @@
     <Compile Include="Credentials.cs" />
     <Compile Include="Commands\CurrentSetlistCommand.cs" />
     <Compile Include="DatabaseCredentials.cs" />
+    <Compile Include="DrinkWaterCommand.cs" />
     <Compile Include="FluzzBot.cs" />
     <Compile Include="Commands\JustDanceClearSongCommand.cs" />
     <Compile Include="Commands\JustDanceCurrentSetlistCommand.cs" />

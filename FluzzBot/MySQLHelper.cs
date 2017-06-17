@@ -10,11 +10,11 @@ namespace FluzzBot
     static class MySQLHelper
     {
         
-        public static MySqlDataReader GetSQLDataFromDatabase(string command, Dictionary<string,string> paramaters)
+        public static MySqlDataReader GetSQLDataFromDatabase(string command, Dictionary<string,string> paramaters, out MySql.Data.MySqlClient.MySqlConnection conn)
         {
             string connString = String.Format("server={0};uid={1};pwd={2};database={3};SslMode=None", DatabaseCredentials.DatabaseHost, DatabaseCredentials.DatabaseUsername, DatabaseCredentials.DatabasePassword, DatabaseCredentials.DatabaseName);
             MySqlDataReader reader;
-            var conn = new MySql.Data.MySqlClient.MySqlConnection()
+            conn = new MySql.Data.MySqlClient.MySqlConnection()
             {
                 ConnectionString = connString
             };
@@ -37,7 +37,6 @@ namespace FluzzBot
             Console.WriteLine(cmd.CommandText);
 
             reader = cmd.ExecuteReader();
-            conn.Close();
             return reader ;
         }
 

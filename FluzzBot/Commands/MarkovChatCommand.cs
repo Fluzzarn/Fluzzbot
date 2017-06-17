@@ -11,57 +11,35 @@ namespace FluzzBot.Commands
     {
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
         public bool RequireMod { get => false; set => throw new NotImplementedException(); }
-        public bool HasCooldown { get => _hasCooldown; set => throw new NotImplementedException(); }
-        public int Cooldown { get => _cooldown; set => throw new NotImplementedException(); }
+        public bool HasCooldown { get => _hasCooldown; set => _hasCooldown = value; }
+        public int Cooldown { get => _cooldown; set => _cooldown = value; }
 
 
         private int order = 1;
+        private Dictionary<string, DateTime> _timerStartDict;
 
         public MarkovChatCommand()
         {
             _commandName = "!markov";
             _hasCooldown = true;
             _cooldown = 300;
-
         }
         public bool Execute(FluzzBot bot, string message,string username)
         {
-            Execute(bot,username);
-
-
             if(message.Split(' ').Length > 1)
             {
                 if (int.TryParse(message.Split(' ')[1], out int newOrder))
                 {
-                    order = newOrder;
+                    if(order > 0)
+                        order = newOrder;
                 }
                 else
                 {
                     bot.ConstructAndEnqueueMessage("Could not change order of bot, syntax is !markov <order>", username);
                 }
             }
-
-            if (!_onCoolDownDict.ContainsKey(username))
-                _onCoolDownDict.Add(username, false);
-
-            if (!_onCoolDownDict[username])
-            {
-                if (HasCooldown)
-                {
-                    if (_onCoolDownDict.ContainsKey(username))
-                    {
-                        _onCoolDownDict[username] = true;
-                    }
-                    else
-                        _onCoolDownDict.Add(username, true);
-                    _timerDict[username].Interval = _cooldownDict[username] * 1000;
-                    _timerDict[username].Elapsed += (sender, args) => { _timer_Elapsed(sender, args, username); };
-                    _timerDict[username].Start();
-                }
-
                 var dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order);
-                bot.ConstructAndEnqueueMessage(MarkovHelper.BuildString(dict, 10, true),username);
-            }
+                bot.ConstructAndEnqueueMessage(MarkovHelper.BuildString(dict, 25, true),username);
             return true;
         }
     }

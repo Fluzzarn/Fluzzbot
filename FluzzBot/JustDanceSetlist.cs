@@ -53,8 +53,8 @@ namespace FluzzBot
         {
             string queury = "SELECT * FROM justdance_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
 
-
-            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", username } });
+            MySql.Data.MySqlClient.MySqlConnection conn;
+            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", username } },out conn);
             if (dataReader.HasRows)
             {
                 while (dataReader.Read())
@@ -64,7 +64,7 @@ namespace FluzzBot
                 }
                 dataReader.Close();
             }
-
+            conn.Close();
         }
 
         public List<string> GetSetlist()

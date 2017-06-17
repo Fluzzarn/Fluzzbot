@@ -1,4 +1,5 @@
 ﻿
+using FluzzBot.Commands;
 using FluzzBot.Markov;
 using FluzzBotCore;
 using System;
@@ -218,16 +219,35 @@ namespace FluzzBot
 
                         if (command.CommandName == null)
                             continue;
-                        if(userStrippedMsg.StartsWith(command.CommandName))
+                        if(userStrippedMsg.Split(' ')[0] == (command.CommandName))
                         {
-
+                            bool isSuperUser = false;
                             if(!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")) && command.RequireMod)
                             { 
-                                if(!buffer.Contains(";display-name=Fluzzarn;"))
+                                if(!twitchInfo.Contains(";display-name=Fluzzarn;"))
                                         continue;
                             }
+                            else
+                            {
+                                isSuperUser = true;
+                            }
+                            try
+                            {
+                                Command c = command as Command;
+                                if(c.PreExecute(this, username) || isSuperUser)
+                                {
+                                    command.Execute(this, userStrippedMsg, username);
 
-                            command.Execute(this, userStrippedMsg,username);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+
+                                Console.WriteLine(ex.Message);
+                                Console.WriteLine(ex.StackTrace);
+                                ConstructAndEnqueueMessage("Go and literally @ me in discord because the bot threw an exception trying to do a command", username);
+                            }
+
                         }
                     }
 
@@ -239,28 +259,29 @@ namespace FluzzBot
 
                     lock (_markovTextDict)
                     {
-                        if(!username.Contains("bot"))
-                        _markovTextDict[username] += userStrippedMsg + " ";
+                        if(!buffer.Contains(";display-name=Nightbot;") && !buffer.Contains(";display-name=Theroflbotr;")&& !buffer.Contains(";bits="))
+                            _markovTextDict[username] += userStrippedMsg + " ";
                   
                     }
 
                 }
                 else if(buffer.Contains("USERNOTICE"))
                 {
-                    string username = buffer.Substring(buffer.IndexOf("USERNOTICE #"));
-                    username = username.Substring("USERNOTICE #".Length, username.IndexOf(':') - "USERNOTICE #".Length + 1);
-                    if (username == "misskaddykins")
-                    {
 
-                        if (buffer.Contains("msg-param-sub-plan=2000"))
-                            ConstructAndEnqueueMessage("kadWotInTarnation WELCOME TO THE KADDY SALOON kadWotInTarnation",username);
-                        else
-                        {
-                            ConstructAndEnqueueMessage("kadHype WELCOME TO THE KADDY SHACK kadHype",username);
-
-                        }
-                        ConstructAndEnqueueMessage("kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype ",username);
-                    }
+                    //string username = buffer.Substring(buffer.IndexOf("USERNOTICE #"));
+                    //username = username.Substring("USERNOTICE #".Length, username.IndexOf(':') - "USERNOTICE #".Length + 1);
+                    //if (username == "misskaddykins")
+                    //{
+                    //
+                    //    if (buffer.Contains("msg-param-sub-plan=2000"))
+                    //        ConstructAndEnqueueMessage("kadWotInTarnation WELCOME TO THE KADDY SALOON kadWotInTarnation",username);
+                    //    else
+                    //    {
+                    //        ConstructAndEnqueueMessage("kadHype WELCOME TO THE KADDY SHACK kadHype",username);
+                    //
+                    //    }
+                    //    ConstructAndEnqueueMessage("kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype kadHype ",username);
+                    //}
                 }
 
 

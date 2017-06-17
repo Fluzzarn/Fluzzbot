@@ -56,13 +56,13 @@ namespace FluzzBot.Commands
                         return true;
                     }
                 }
-                bot.ConstructAndEnqueueMessage("Could not change "+ toChange+"'s cooldown, could not find the command");
+                bot.ConstructAndEnqueueMessage("Could not change "+ toChange+"'s cooldown, could not find the command",username);
                 return false;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                bot.ConstructAndEnqueueMessage("Error trying to change cooldown, correct syntax is: !setcd <command> <new cooldown in seconds>");
+                bot.ConstructAndEnqueueMessage("Error trying to change cooldown, correct syntax is: !setcd <command> <new cooldown in seconds>",username);
                 
             }
             return false;

@@ -38,8 +38,8 @@ namespace FluzzBot
             try
             {
 
-
-                MySqlDataReader dataReader= MySQLHelper.GetSQLDataFromDatabase("SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE @message AND username LIKE @username", new Dictionary<string, string>() { {"@message",message },{"@username",username } });
+                MySql.Data.MySqlClient.MySqlConnection conn;
+                MySqlDataReader dataReader= MySQLHelper.GetSQLDataFromDatabase("SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE @message AND username LIKE @username", new Dictionary<string, string>() { {"@message",message },{"@username",username } },out conn);
                 
                 if(dataReader.HasRows)
                 {
@@ -70,6 +70,7 @@ namespace FluzzBot
                     MySQLHelper.RunSQLRequest("INSERT INTO current_setlist (user_id,song_id) SELECT Usernames.user_id,Songs.id FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE @message AND username LIKE @username", new Dictionary<string, string> { { "@message", message }, { "@username", username } });
 
                 }
+                conn.Close();
             }
             catch (Exception ex)
             {
