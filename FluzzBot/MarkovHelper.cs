@@ -42,6 +42,28 @@ namespace FluzzBot
                 return t;
             }
 
+            static public TDict BuildTDict(string s, int size, TDict t)
+            {
+                string prev = "";
+                foreach (string word in Chunk(s, size))
+                {
+                    if (t.ContainsKey(prev))
+                    {
+                        WDict w = t[prev];
+                        if (w.ContainsKey(word))
+                            w[word] += 1;
+                        else
+                            w.Add(word, 1);
+                    }
+                    else
+                        t.Add(prev, new WDict() { { word, 1 } });
+
+                    prev = word;
+                }
+
+                return t;
+            }
+
             static public string[] Chunk(string s, int size)
             {
                 string[] ls = s.Split(' ');

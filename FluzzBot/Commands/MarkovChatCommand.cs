@@ -1,12 +1,15 @@
 ﻿using FluzzBot.Markov;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FluzzBot.Commands
 {
+    using TDict = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, uint>>;
+
     class MarkovChatCommand : Command, ICommand
     {
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
@@ -16,13 +19,15 @@ namespace FluzzBot.Commands
 
 
         private int order = 1;
-        private Dictionary<string, DateTime> _timerStartDict;
+
+        private Dictionary<string, TDict> _tDictDict;
 
         public MarkovChatCommand()
         {
             _commandName = "!markov";
             _hasCooldown = true;
             _cooldown = 300;
+            _tDictDict = new Dictionary<string, TDict>();
         }
         public bool Execute(FluzzBot bot, string message,string username)
         {
@@ -38,7 +43,27 @@ namespace FluzzBot.Commands
                     bot.ConstructAndEnqueueMessage("Could not change order of bot, syntax is !markov <order>", username);
                 }
             }
-                var dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order);
+
+            TDict dict;
+            if(_tDictDict.ContainsKey(username))
+            {
+                dict = _tDictDict[username];
+                dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order,dict);
+                _tDictDict[username] = dict;
+            }
+            else
+            {
+                 dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order);
+                _tDictDict.Add(username, dict);
+            }
+
+
+            lock (bot.MarkovText)
+            {
+                File.AppendAllText("./markov/" + username.ToLower() + ".txt", bot.MarkovText[username.ToLower()]);
+            }
+
+            bot.MarkovText[username] = "";
                 bot.ConstructAndEnqueueMessage(MarkovHelper.BuildString(dict, 25, true),username);
             return true;
         }
