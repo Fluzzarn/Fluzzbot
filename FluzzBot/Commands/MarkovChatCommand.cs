@@ -31,11 +31,11 @@ namespace FluzzBot.Commands
         }
         public bool Execute(FluzzBot bot, string message,string username)
         {
-            if(message.Split(' ').Length > 1)
+            if (message.Split(' ').Length > 1)
             {
                 if (int.TryParse(message.Split(' ')[1], out int newOrder))
                 {
-                    if(order > 0)
+                    if (order > 0)
                         order = newOrder;
                 }
                 else
@@ -44,28 +44,36 @@ namespace FluzzBot.Commands
                 }
             }
 
-            TDict dict;
-            if(_tDictDict.ContainsKey(username))
-            {
-                dict = _tDictDict[username];
-                dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order,dict);
-                _tDictDict[username] = dict;
-            }
-            else
-            {
-                 dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order);
-                _tDictDict.Add(username, dict);
-            }
-
-
+            TDict dict = MakeTDict(bot, username);
             lock (bot.MarkovText)
             {
                 File.AppendAllText("./markov/" + username.ToLower() + ".txt", bot.MarkovText[username.ToLower()]);
             }
 
             bot.MarkovText[username] = "";
-                bot.ConstructAndEnqueueMessage(MarkovHelper.BuildString(dict, 25, true),username);
+
+            bot.ConstructAndEnqueueMessage(MarkovHelper.BuildString(dict, 25, true), username);
             return true;
+        }
+
+        public TDict MakeTDict(FluzzBot bot, string username)
+        {
+            TDict dict;
+            if (_tDictDict.ContainsKey(username))
+            {
+                dict = _tDictDict[username];
+                dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order, dict);
+                _tDictDict[username] = dict;
+            }
+            else
+            {
+                dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order);
+                _tDictDict.Add(username, dict);
+            }
+
+
+
+            return dict;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace FluzzBot
         private Queue<String> _messagesToSend;
 
 
-
+        string[] _bannedList;
         private StreamReader _chatReader;
         private StreamWriter _chatWriter;
         private NetworkStream _networkStream;
@@ -77,7 +77,7 @@ namespace FluzzBot
             }
 
 
-            
+            _bannedList = File.ReadAllLines("bannedWords.txt");
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
             _messagesToSend = new Queue<string>();
@@ -171,11 +171,18 @@ namespace FluzzBot
                             {
                                 _markovTextDict[channel.ToLower()] = File.ReadAllText(filePath);
                             }
-                            using (File.Create(filePath))
+                            using (FileStream f = File.Create(filePath))
+                            {
+                            }
+                            ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).MakeTDict(this, channel);
+                            lock (this.MarkovText)
                             {
 
+                                File.AppendAllText("./markov/" + channel.ToLower() + ".txt", this.MarkovText[channel.ToLower()]);
                             }
-                            
+
+                            this.MarkovText[channel] = "";
+
                         }
 
                     }
@@ -265,7 +272,10 @@ namespace FluzzBot
                     lock (_markovTextDict)
                     {
                         if(!buffer.Contains(";display-name=Nightbot;") && !buffer.Contains(";display-name=Theroflbotr;")&& !buffer.Contains(";bits="))
-                            _markovTextDict[username] += userStrippedMsg + " ";
+                        {
+                            string message = stripBannedWords(userStrippedMsg);
+                            _markovTextDict[username] += message + " ";
+                        }
                   
                     }
 
@@ -291,6 +301,16 @@ namespace FluzzBot
 
 
             }
+        }
+
+        private string stripBannedWords(string userStrippedMsg)
+        {
+            
+            foreach (var word in _bannedList)
+            {
+                userStrippedMsg = userStrippedMsg.Replace(word, "CENSORED");
+            }
+            return userStrippedMsg;
         }
 
         private void ChatMessageSendThread(StreamWriter chatWriter)
