@@ -18,34 +18,17 @@ namespace FluzzBot.Commands
        
 
 
-        public DadJokeCommand()
+        public DadJokeCommand() : base()
         {
             _commandName = "!dad";
             _hasCooldown = true;
             _cooldown = 5;
+            
         }
 
         public bool Execute(FluzzBot bot, string message,string username)
         {
-            Execute(bot,username);
 
-            if (!_onCoolDownDict.ContainsKey(username))
-                _onCoolDownDict.Add(username, false);
-
-            if(!_onCoolDownDict[username])
-            {
-                if (HasCooldown)
-                {
-                    if (_onCoolDownDict.ContainsKey(username))
-                    {
-                        _onCoolDownDict[username] = true;
-                    }
-                    else
-                        _onCoolDownDict.Add(username, true);
-                    _timerDict[username].Interval = _cooldownDict[username] * 1000;
-                    _timerDict[username].Elapsed += (sender, args) => { _timer_Elapsed(sender, args, username); };
-                    _timerDict[username].Start();
-                }
                 var client = new HttpClient();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/plain"));
 
@@ -55,7 +38,6 @@ namespace FluzzBot.Commands
                     Console.WriteLine(response.Content);
                     bot.ConstructAndEnqueueMessage(response.Content.ReadAsStringAsync().Result,username);
                 }
-            }
 
 
             return true;

@@ -22,6 +22,17 @@ namespace FluzzBot.Commands
 
         public Dictionary<string,DateTime> _timerStartDict { get; private set; }
 
+        public Command()
+        {
+            if (_onCoolDownDict == null)
+            {
+                _cooldownDict = new Dictionary<string, int>();
+                _onCoolDownDict = new Dictionary<string, bool>();
+                _timerDict = new Dictionary<string, Timer>();
+                _timerStartDict = new Dictionary<string, DateTime>();
+            }
+        }
+
         public bool PreExecute(FluzzBot bot, string username)
         {
             if (_onCoolDownDict == null)

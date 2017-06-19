@@ -171,23 +171,11 @@ namespace FluzzBot
                             {
                                 _markovTextDict[channel.ToLower()] = File.ReadAllText(filePath);
                             }
-                            else
+                            using (File.Create(filePath))
                             {
-                                File.Create(filePath);
+
                             }
-                            System.Timers.Timer t = new System.Timers.Timer(900000);
-
-
-                            t.Elapsed += (sender, args) => {
-                                lock (_markovTextDict)
-                                {
-                                    File.WriteAllText("./markov/" + channel.ToLower() + ".txt", _markovTextDict[channel.ToLower()]);
-                                }
-                                t.Start();
-
-                            };
-
-                            t.Start();
+                            
                         }
 
                     }
@@ -222,23 +210,40 @@ namespace FluzzBot
                         if(userStrippedMsg.Split(' ')[0] == (command.CommandName))
                         {
                             bool isSuperUser = false;
-                            if(!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")) && command.RequireMod)
-                            { 
-                                if(!twitchInfo.Contains(";display-name=Fluzzarn;"))
+
+                            if(command.RequireMod)
+                            {
+                                if (!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")))
+                                {
+                                    if (!twitchInfo.Contains(";display-name=Fluzzarn;"))
                                         continue;
+                                    else
+                                        isSuperUser = true;
+                                }
+
                             }
-                            else
+
+                            if (twitchInfo.Contains(";display-name=Fluzzarn;"))
                             {
                                 isSuperUser = true;
                             }
-                            try
+
+                                try
                             {
                                 Command c = command as Command;
-                                if(c.PreExecute(this, username) || isSuperUser)
+                                if(isSuperUser)
                                 {
                                     command.Execute(this, userStrippedMsg, username);
-
                                 }
+                                else
+                                {
+                                    if (c.PreExecute(this, username))
+                                    {
+                                        command.Execute(this, userStrippedMsg, username);
+
+                                    }
+                                }
+
                             }
                             catch (Exception ex)
                             {

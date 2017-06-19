@@ -52,7 +52,7 @@ namespace FluzzBot.Commands
                         }
 
 
-                        bot.ConstructAndEnqueueMessage("Successfully changed command's cooldown");
+                        bot.ConstructAndEnqueueMessage("Successfully changed command's cooldown",username);
                         return true;
                     }
                 }
