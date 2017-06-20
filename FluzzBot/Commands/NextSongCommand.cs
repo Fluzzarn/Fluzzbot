@@ -8,7 +8,7 @@ namespace FluzzBot
 {
     class NextSongCommand : ICommand
     {
-        private string _commandName = "!nextsong";
+        private string _commandName = "!rbNextsong";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }

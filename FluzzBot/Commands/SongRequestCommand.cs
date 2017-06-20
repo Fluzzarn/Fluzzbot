@@ -9,7 +9,7 @@ namespace FluzzBot
 {
     class SongRequestCommand : ICommand
     {
-        private string _commandName = "!request";
+        private string _commandName = "!rbRequest";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }

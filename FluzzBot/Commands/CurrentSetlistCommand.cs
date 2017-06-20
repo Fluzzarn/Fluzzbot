@@ -8,7 +8,7 @@ namespace FluzzBot
 {
     class CurrentSetlistCommand : ICommand
     {
-        public string CommandName { get => "!currentSetlist"; set => throw new NotImplementedException(); }
+        public string CommandName { get => "!rbCurrentSetlist"; set => throw new NotImplementedException(); }
         public bool RequireMod { get => false; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
