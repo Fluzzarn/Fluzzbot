@@ -1,4 +1,5 @@
-﻿using FluzzBotCore;
+﻿using FluzzBot.Commands;
+using FluzzBotCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FluzzBot
 {
-    class JustDanceClearSongCommand : ICommand
+    class JustDanceClearSongCommand : Command,ICommand
     {
         public string CommandName { get => "!jdRemove"; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }

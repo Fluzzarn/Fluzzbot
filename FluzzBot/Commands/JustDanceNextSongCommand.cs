@@ -1,11 +1,12 @@
 ﻿using FluzzBot;
+using FluzzBot.Commands;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace FluzzBotCore
 {
-    class JustDanceNextSongCommand : ICommand
+    class JustDanceNextSongCommand : Command, ICommand
     {
         public string CommandName { get => "!jdNext"; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }

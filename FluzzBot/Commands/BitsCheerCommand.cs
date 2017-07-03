@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluzzBot.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FluzzBot
 {
-    class BitsCheerCommand : ICommand
+    class BitsCheerCommand : Command,ICommand
 
     {
         public string CommandName { get => null; set => throw new NotImplementedException(); }

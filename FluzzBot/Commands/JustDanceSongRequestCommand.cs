@@ -3,10 +3,10 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Text;
-
+using FluzzBot.Commands;
 namespace FluzzBotCore
 {
-    class JustDanceSongRequestCommand : ICommand
+    class JustDanceSongRequestCommand : Command, ICommand
     {
         private string _commandName = "!jdRequest";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }

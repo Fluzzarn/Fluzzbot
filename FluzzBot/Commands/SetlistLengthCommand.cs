@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluzzBot.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FluzzBot
 {
-    class SetlistLengthCommand : ICommand
+    class SetlistLengthCommand : Command,ICommand
     {
         private string _commandName = "!rbSetlistLength";
         public string CommandName { get =>  _commandName; set => throw new NotImplementedException(); }

@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using FluzzBot.Commands;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FluzzBot
 {
-    class SongRequestCommand : ICommand
+    class SongRequestCommand : Command,ICommand
     {
         private string _commandName = "!rbRequest";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
