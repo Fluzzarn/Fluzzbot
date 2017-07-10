@@ -20,6 +20,8 @@ namespace FluzzBot
         private Dictionary<string, string> _markovTextDict;
         public Dictionary<string, string> MarkovText { get =>  _markovTextDict; set { } }
 
+        private Dictionary<string, JustDanceSetlist> _justDanceDict;
+        public Dictionary<string, JustDanceSetlist> JustDanceDict { get => _justDanceDict; set { } }
         TcpClient IRCSocket;
         String _serverAddress;
         int _serverPort;
@@ -40,13 +42,7 @@ namespace FluzzBot
         }
 
         public Setlist SongList { get; private set; }
-        private JustDanceSetlist _jdSetlist;
 
-        internal JustDanceSetlist JustDanceSetlist
-        {
-            get { return _jdSetlist; }
-            set { _jdSetlist = value; }
-        }
 
 
         private List<ICommand> ValidCommands;
@@ -61,6 +57,7 @@ namespace FluzzBot
         {
             _channelCredentials = c;
             _markovTextDict = new Dictionary<string, string>();
+            _justDanceDict = new Dictionary<string, JustDanceSetlist>();
         }
 
 
@@ -81,9 +78,7 @@ namespace FluzzBot
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
             _messagesToSend = new Queue<string>();
-            JustDanceSetlist = new JustDanceSetlist(this);
             SongList = new Setlist(this);
-            JustDanceSetlist.LoadSetlistFromDatabase("misskaddykins");
             try
             {
                 Console.WriteLine("Starting FluzzBot");
@@ -163,26 +158,9 @@ namespace FluzzBot
                         foreach (var channel in file)
                         {
                             WriteToStream("JOIN #" + channel.ToLower());
-                            _markovTextDict.Add(channel.ToLower(), "");
-
-                            string filePath = "./markov/" + channel.ToLower() + ".txt";
-
-                            if(File.Exists(filePath))
-                            {
-                                _markovTextDict[channel.ToLower()] = File.ReadAllText(filePath);
-                            }
-                            using (FileStream f = File.Create(filePath))
-                            {
-                            }
-                            ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).MakeTDict(this, channel);
-                            lock (this.MarkovText)
-                            {
-
-                                File.AppendAllText("./markov/" + channel.ToLower() + ".txt", this.MarkovText[channel.ToLower()]);
-                            }
-
-                            this.MarkovText[channel] = "";
-
+                            StartMarkov(channel);
+                            JustDanceDict[channel] = new JustDanceSetlist(this);
+                            JustDanceDict[channel].LoadSetlistFromDatabase(channel);
                         }
 
                     }
@@ -303,6 +281,31 @@ namespace FluzzBot
             }
         }
 
+        private void StartMarkov(string channel)
+        {
+            Console.WriteLine("CREATING MARKOV DICT FOR {0}", channel);
+            _markovTextDict.Add(channel.ToLower(), "");
+
+            string filePath = "./markov/" + channel.ToLower() + ".txt";
+
+            if (File.Exists(filePath))
+            {
+                _markovTextDict[channel.ToLower()] = File.ReadAllText(filePath);
+            }
+            using (FileStream f = File.Create(filePath))
+            {
+            }
+                                    ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).MakeTDict(this, channel);
+            lock (this.MarkovText)
+            {
+
+                File.AppendAllText("./markov/" + channel.ToLower() + ".txt", this.MarkovText[channel.ToLower()]);
+            }
+
+            this.MarkovText[channel] = "";
+            Console.WriteLine("DONE CREATING MARKOV DICT FOR CHANNEL {0}", channel);
+        }
+
         private string stripBannedWords(string userStrippedMsg)
         {
             
@@ -390,6 +393,7 @@ namespace FluzzBot
         {
             lock (_messagesToSend)
             {
+                
                 Console.WriteLine("Enqueuing " + message);
                 _messagesToSend.Enqueue(message);
             }

@@ -43,12 +43,12 @@ namespace FluzzBot.Commands
 
                         string updateStatement = "UPDATE command_cooldown SET cooldown = @newDuration WHERE command_name LIKE @toChange AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
 
-                        int rows = MySQLHelper.RunSQLRequest(insertStatement, new Dictionary<string, string>() { { "@toChange", toChange }, { "@newDuration", newDuration.ToString() }, { "@username", username } });
+                        int rows = MySQLHelper.RunSQLRequest(updateStatement, new Dictionary<string, string>() { { "@toChange", toChange }, { "@newDuration", newDuration.ToString() }, { "@username", username } });
 
 
                         if (rows < 1)
                         {
-                            MySQLHelper.RunSQLRequest(updateStatement, new Dictionary<string, string>() { { "@toChange", toChange }, { "@newDuration", newDuration.ToString() }, { "@username", username } });
+                            MySQLHelper.RunSQLRequest(insertStatement, new Dictionary<string, string>() { { "@toChange", toChange }, { "@newDuration", newDuration.ToString() }, { "@username", username } });
                         }
 
 

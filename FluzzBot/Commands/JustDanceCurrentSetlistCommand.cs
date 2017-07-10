@@ -18,7 +18,7 @@ namespace FluzzBotCore
         {
             Execute(bot,username);
             string msg = "Current setlist is: ";
-            foreach (var item in bot.JustDanceSetlist.GetSetlist())
+            foreach (var item in bot.JustDanceDict[username].GetSetlist())
             {
                 msg += item + ", ";
             }

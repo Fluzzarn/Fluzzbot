@@ -6,7 +6,7 @@ using System.Text;
 
 namespace FluzzBot
 {
-    internal class JustDanceSetlist
+    public class JustDanceSetlist
     {
         List<string> Songs = new List<string>();
         String current_song;

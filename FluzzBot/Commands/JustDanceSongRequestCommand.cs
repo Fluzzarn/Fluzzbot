@@ -8,17 +8,21 @@ namespace FluzzBotCore
 {
     class JustDanceSongRequestCommand : Command, ICommand
     {
-        private string _commandName = "!jdRequest";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+        public JustDanceSongRequestCommand()
+        {
+            _commandName = "!jdRequest";
+        }
+
         public bool Execute(FluzzBot.FluzzBot bot, string message,string username)
         {
             Console.WriteLine("Starting JustDanceSongRequest Command");
             string song = message.Substring(message.IndexOf(' ') + 1);
-            bot.JustDanceSetlist.AddSong(song);
+            bot.JustDanceDict[username].AddSong(song);
 
 
 

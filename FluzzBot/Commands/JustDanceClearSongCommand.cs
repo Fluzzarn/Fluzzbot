@@ -17,7 +17,7 @@ namespace FluzzBot
 
         public bool Execute(FluzzBot bot, string message,string username)
         {
-            JustDanceSetlist set = bot.JustDanceSetlist;
+            JustDanceSetlist set = bot.JustDanceDict[username];
             string song = message.Substring(CommandName.Length + 1);
             bool result = set.RemoveSong(song,username);
             string sentMessage = "";

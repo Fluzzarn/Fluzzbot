@@ -9,12 +9,17 @@ namespace FluzzBot
 {
     class SetlistLengthCommand : Command,ICommand
     {
-        private string _commandName = "!rbSetlistLength";
+        //private string _commandName = "!rbSetlistLength";
         public string CommandName { get =>  _commandName; set => throw new NotImplementedException(); }
         public bool RequireMod { get => false; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+
+        public SetlistLengthCommand()
+        {
+            _commandName = "!rbSetlistLength";
+        }
         public bool Execute(FluzzBot bot, string message,string username)
         {
 

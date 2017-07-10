@@ -80,7 +80,8 @@ namespace FluzzBot.Commands
                 }
                 else
                 {
-                    bot.ConstructAndEnqueueMessage("I'm on cooldown for another " + Math.Floor(_cooldown - (DateTime.Now - _timerStartDict[username]).TotalSeconds) + " seconds", username);
+                    double secs = (DateTime.Now - _timerStartDict[username]).TotalSeconds;
+                    bot.ConstructAndEnqueueMessage("I'm on cooldown for another " + Math.Floor( _cooldownDict[username] + 0.0 - secs ) + " seconds", username);
                     return false;
                 }
             }

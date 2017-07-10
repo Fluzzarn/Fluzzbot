@@ -9,11 +9,16 @@ namespace FluzzBot
 {
     class NextSongCommand : Command,ICommand
     {
-        private string _commandName = "!rbNextsong";
         public string CommandName { get => _commandName; set => throw new NotImplementedException(); }
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+
+        public NextSongCommand()
+        {
+            _commandName = "!rbNextSong";
+        }
 
         public bool Execute(FluzzBot bot, string message,string username)
         {

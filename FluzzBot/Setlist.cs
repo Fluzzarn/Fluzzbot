@@ -92,7 +92,7 @@ namespace FluzzBot
         internal void LoadSetlistFromDatabase(string username)
         {
 
-            string queury = "SELECT * FROM Songs s WHERE s.id IN (SELECT song_id FROM current_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username))";
+            //string queury = "SELECT * FROM Songs s WHERE s.id IN (SELECT song_id FROM current_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username))";
 
             //MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", username } });
 

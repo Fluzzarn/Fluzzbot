@@ -15,7 +15,7 @@ namespace FluzzBotCore
 
         public bool Execute(FluzzBot.FluzzBot bot, string message,string username)
         {
-            string song = bot.JustDanceSetlist.NextSong(username);
+            string song = bot.JustDanceDict[username].NextSong(username);
 
             if (song == null)
                 bot.ConstructAndEnqueueMessage("Setlist is empty!",username);
