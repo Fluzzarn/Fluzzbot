@@ -75,7 +75,6 @@ namespace FluzzBot
                 var file = File.ReadAllLines("./users.txt").ToList();
                 foreach (var channel in file)
                 {
-                    WriteToStream("JOIN #" + channel.ToLower());
                     StartMarkov(channel);
                     JustDanceDict[channel] = new JustDanceSetlist(this);
                     JustDanceDict[channel].LoadSetlistFromDatabase(channel);
@@ -161,7 +160,12 @@ namespace FluzzBot
                 buffer = chatReader.ReadLine();
                 if(buffer.Split(' ')[1] == "001")
                 {
+                    var file = File.ReadAllLines("./users.txt").ToList();
 
+                    foreach (var channel in file)
+                    {
+                        WriteToStream("JOIN #" + channel.ToLower());
+                    }
 
                 }
 
