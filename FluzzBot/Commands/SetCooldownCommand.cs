@@ -39,7 +39,7 @@ namespace FluzzBot.Commands
                         command.HasCooldown = true;
                         int newDuration = Convert.ToInt32(message.Split(' ')[2]);
                         command.Cooldown = newDuration;
-                        string insertStatement = "INSERT into command_cooldown(user_id,command_name,cooldown) SELECT Usernames.user_id, @toChange , @toChange FROM Usernames WHERE username LIKE @username";
+                        string insertStatement = "INSERT into command_cooldown(user_id,command_name,cooldown) SELECT Usernames.user_id, @toChange , @newDuration FROM Usernames WHERE username LIKE @username";
 
                         string updateStatement = "UPDATE command_cooldown SET cooldown = @newDuration WHERE command_name LIKE @toChange AND user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
 
