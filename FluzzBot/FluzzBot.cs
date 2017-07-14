@@ -72,7 +72,16 @@ namespace FluzzBot
                 Console.WriteLine("Adding {0} to commands",command);
                 ValidCommands.Add(Activator.CreateInstance(command) as ICommand);
             }
+                var file = File.ReadAllLines("./users.txt").ToList();
+                foreach (var channel in file)
+                {
+                    WriteToStream("JOIN #" + channel.ToLower());
+                    StartMarkov(channel);
+                    JustDanceDict[channel] = new JustDanceSetlist(this);
+                    JustDanceDict[channel].LoadSetlistFromDatabase(channel);
+                }
 
+            
 
             _bannedList = File.ReadAllLines("bannedWords.txt");
             _serverAddress = "irc.chat.twitch.tv";
@@ -153,17 +162,7 @@ namespace FluzzBot
                 if(buffer.Split(' ')[1] == "001")
                 {
 
-                    {
-                        var file = File.ReadAllLines("./users.txt").ToList();
-                        foreach (var channel in file)
-                        {
-                            WriteToStream("JOIN #" + channel.ToLower());
-                            StartMarkov(channel);
-                            JustDanceDict[channel] = new JustDanceSetlist(this);
-                            JustDanceDict[channel].LoadSetlistFromDatabase(channel);
-                        }
 
-                    }
                 }
 
                 if (buffer.Contains("PING :"))
