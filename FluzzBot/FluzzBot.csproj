@@ -67,6 +67,7 @@
   <ItemGroup>
     <Compile Include="Commands\BitsCheerCommand.cs" />
     <Compile Include="Commands\Command.cs" />
+    <Compile Include="Commands\GoodNewsCommand.cs" />
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Commands\DadJokeCommand.cs" />
     <Compile Include="Commands\KillCommand.cs" />
