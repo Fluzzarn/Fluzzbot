@@ -52,7 +52,7 @@ namespace FluzzBot.Commands
 
             bot.MarkovText[username] = "";
 
-            bot.ConstructAndEnqueueMessage(MarkovHelper.BuildString(dict, 25, true), username);
+            bot.ConstructAndEnqueueMessage(MarkovHelper.BuildString(dict, 25, true).Replace('@',' '), username);
             return true;
         }
 
