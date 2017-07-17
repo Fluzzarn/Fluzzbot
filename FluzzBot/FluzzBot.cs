@@ -252,10 +252,14 @@ namespace FluzzBot
 
                     lock (_markovTextDict)
                     {
-                        if(!buffer.Contains(";display-name=Nightbot;") && !buffer.Contains(";display-name=Theroflbotr;")&& !buffer.Contains(";bits="))
+                        if(!buffer.Contains(";display-name=nightbot;") && !buffer.Contains(";display-name=theroflbotr;")&& !buffer.Contains(";bits="))
                         {
-                            string message = stripBannedWords(userStrippedMsg);
-                            _markovTextDict[username] += message + " ";
+                            if(!buffer.Contains(";display-name=fluzzbot;"))
+                            {
+                                string message = stripBannedWords(userStrippedMsg);
+                                _markovTextDict[username] += message + " ";
+
+                            }
                         }
                   
                     }

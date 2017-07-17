@@ -1,4 +1,5 @@
 ﻿using FluzzBot.Markov;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,17 +63,28 @@ namespace FluzzBot.Commands
             if (_tDictDict.ContainsKey(username))
             {
                 dict = _tDictDict[username];
-                dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order, dict);
+                    dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order, dict);
+                
                 _tDictDict[username] = dict;
             }
             else
             {
-                dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order);
+                if (File.Exists("./markov/" + username.ToLower() + ".json"))
+                {
+                    dict = JsonConvert.DeserializeObject<TDict>(File.ReadAllText("./markov/" + username.ToLower() + ".json"));
+                }
+                else
+                {
+
+                    dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order);
+                }
                 _tDictDict.Add(username, dict);
             }
 
 
+            string json = JsonConvert.SerializeObject(dict, Formatting.Indented);
 
+            File.WriteAllText("./markov/" + username.ToLower() + ".json", json);
             return dict;
         }
     }
