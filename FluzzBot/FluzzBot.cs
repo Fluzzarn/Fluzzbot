@@ -220,7 +220,7 @@ namespace FluzzBot
 
                         if (command.CommandName == null)
                             continue;
-                        if(userStrippedMsg.Split(' ')[0] == (command.CommandName))
+                        if(userStrippedMsg.Split(' ')[0].ToLower() == (command.CommandName).ToLower())
                         {
                             bool isSuperUser = false;
 
