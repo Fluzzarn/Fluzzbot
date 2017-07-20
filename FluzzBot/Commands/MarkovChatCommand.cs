@@ -52,8 +52,17 @@ namespace FluzzBot.Commands
             }
 
             bot.MarkovText[username] = "";
+            string sentMessage = MarkovHelper.BuildString(dict, 25, true).Replace('@', ' ');
 
-            bot.ConstructAndEnqueueMessage(MarkovHelper.BuildString(dict, 25, true).Replace('@',' '), username);
+            foreach (var user in bot.JoinedUsersDict[username])
+            {
+                if (sentMessage.Contains(user))
+                {
+                    sentMessage.Replace(user, " ");
+                }
+            }
+
+            bot.ConstructAndEnqueueMessage(sentMessage, username);
             return true;
         }
 

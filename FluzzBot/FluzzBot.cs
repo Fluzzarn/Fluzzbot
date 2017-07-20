@@ -18,6 +18,9 @@ namespace FluzzBot
 {
     public class FluzzBot
     {
+
+
+
         private Dictionary<string, string> _markovTextDict;
         public Dictionary<string, string> MarkovText { get =>  _markovTextDict; set { } }
 
@@ -58,12 +61,17 @@ namespace FluzzBot
         private Dictionary<string, List<string>> _removedCommandsDict;
         public Dictionary<string, List<string>> RemovedCommands { get => _removedCommandsDict; set { } }
 
+        //User, List of commands
+        private Dictionary<string, List<string>> _joinedUsersDict;
+        public Dictionary<string, List<string>> JoinedUsersDict { get => _joinedUsersDict; set { } }
+
         public FluzzBot(Credentials c)
         {
             _channelCredentials = c;
             _markovTextDict = new Dictionary<string, string>();
             _justDanceDict = new Dictionary<string, JustDanceSetlist>();
             _removedCommandsDict = new Dictionary<string, List<string>>();
+            _joinedUsersDict = new Dictionary<string, List<string>>();
         }
 
 
@@ -83,6 +91,7 @@ namespace FluzzBot
                 {
                     StartMarkov(channel);
                 LoadBannedCommands(channel);
+                _joinedUsersDict[channel] = new List<string>();
                     JustDanceDict[channel] = new JustDanceSetlist(this);
                     JustDanceDict[channel].LoadSetlistFromDatabase(channel);
                 }
@@ -200,6 +209,19 @@ namespace FluzzBot
                         WriteToStream("JOIN #" + channel.ToLower());
                     }
 
+                }
+
+                if(buffer.Contains(".tmi.twitch.tv JOIN #"))
+                {
+                    string channelName = buffer.Split('#')[1];
+                    string username = buffer.Split('!')[0].Substring(1);
+                    _joinedUsersDict[channelName].Add(username);
+                }
+                else if (buffer.Contains(".tmi.twitch.tv PART #"))
+                {
+                    string channelName = buffer.Split('#')[1];
+                    string username = buffer.Split('!')[0].Substring(1);
+                    _joinedUsersDict[channelName].RemoveAll((x) => x ==username);
                 }
 
                 if (buffer.Contains("PING :"))
@@ -371,7 +393,8 @@ namespace FluzzBot
 
             EnqueueMessage("CAP REQ :twitch.tv/commands");
             EnqueueMessage("CAP REQ :twitch.tv/tags");
-            ConstructAndEnqueueMessage("/mods");
+            EnqueueMessage("CAP REQ :twitch.tv/membership");
+            //ConstructAndEnqueueMessage("/mods");
             while (_isRunning)
             {
                 lock (_messagesToSend)
@@ -462,6 +485,7 @@ namespace FluzzBot
         {
             message = message.Insert(0, "PRIVMSG #" + username.ToLower() + " :");
             message = message.Replace('@', ' ');
+
             byte[] utf8_bytes = Encoding.Default.GetBytes(message);
             //message = Encoding.UTF8.GetString(utf8_bytes);
             EnqueueMessage(message);
