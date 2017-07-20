@@ -461,6 +461,7 @@ namespace FluzzBot
         public void ConstructAndEnqueueMessage(String message, String username)
         {
             message = message.Insert(0, "PRIVMSG #" + username.ToLower() + " :");
+            message = message.Replace('@', ' ');
             byte[] utf8_bytes = Encoding.Default.GetBytes(message);
             //message = Encoding.UTF8.GetString(utf8_bytes);
             EnqueueMessage(message);
