@@ -143,10 +143,14 @@ namespace FluzzBot
 
             try
             {
-                 _networkStream = IRCSocket.GetStream();             
-                    _chatReader = new StreamReader(_networkStream);
-                    _chatWriter = new StreamWriter(_networkStream);
+                 _networkStream = IRCSocket.GetStream();
+                var utf8withoutBOM = new UTF8Encoding(false);
+                    _chatReader = new StreamReader(_networkStream,utf8withoutBOM);
+                    _chatWriter = new StreamWriter(_networkStream, utf8withoutBOM);
 
+
+                    _chatWriter.Flush();
+                    
                     String loginMessage = "PASS " + _channelCredentials.Password;
                     loginMessage += Environment.NewLine + "NICK " + _channelCredentials.Username.ToLower();
 
@@ -183,7 +187,11 @@ namespace FluzzBot
                 }
 
                 buffer = chatReader.ReadLine();
-                if(buffer.Split(' ')[1] == "001")
+
+#if DEBUG
+                global::System.Console.WriteLine(buffer);
+#endif
+                if (buffer.Split(' ')[1] == "001")
                 {
                     var file = File.ReadAllLines("./users.txt").ToList();
 
@@ -210,9 +218,7 @@ namespace FluzzBot
                     string twitchInfo = buffer.Substring(0, buffer.IndexOf(substringKey));
                    string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
 
-#if DEBUG
-                    global::System.Console.WriteLine(buffer);
-#endif
+
                     CurrentMessage = buffer;
 
                     foreach (ICommand command in ValidCommands)
@@ -455,6 +461,8 @@ namespace FluzzBot
         public void ConstructAndEnqueueMessage(String message, String username)
         {
             message = message.Insert(0, "PRIVMSG #" + username.ToLower() + " :");
+            byte[] utf8_bytes = Encoding.Default.GetBytes(message);
+            //message = Encoding.UTF8.GetString(utf8_bytes);
             EnqueueMessage(message);
         }
 
