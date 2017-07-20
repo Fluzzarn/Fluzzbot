@@ -2,6 +2,7 @@
 using FluzzBot.Commands;
 using FluzzBot.Markov;
 using FluzzBotCore;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -53,11 +54,16 @@ namespace FluzzBot
         private Credentials _channelCredentials;
 
 
+        //User, List of commands
+        private Dictionary<string, List<string>> _removedCommandsDict;
+        public Dictionary<string, List<string>> RemovedCommands { get => _removedCommandsDict; set { } }
+
         public FluzzBot(Credentials c)
         {
             _channelCredentials = c;
             _markovTextDict = new Dictionary<string, string>();
             _justDanceDict = new Dictionary<string, JustDanceSetlist>();
+            _removedCommandsDict = new Dictionary<string, List<string>>();
         }
 
 
@@ -76,6 +82,7 @@ namespace FluzzBot
                 foreach (var channel in file)
                 {
                     StartMarkov(channel);
+                LoadBannedCommands(channel);
                     JustDanceDict[channel] = new JustDanceSetlist(this);
                     JustDanceDict[channel].LoadSetlistFromDatabase(channel);
                 }
@@ -111,6 +118,24 @@ namespace FluzzBot
                 throw ex;
             }
 
+        }
+
+        private void LoadBannedCommands(string channel)
+        {
+            _removedCommandsDict[channel] = new List<string>();
+            string queury = "SELECT * FROM banned_commands WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
+
+            MySql.Data.MySqlClient.MySqlConnection conn;
+            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", channel } }, out conn);
+            if (dataReader.HasRows)
+            {
+                while (dataReader.Read())
+                {
+                    _removedCommandsDict[channel].Add((string)dataReader["command"]);
+                    Console.WriteLine("Adding {0} to banned commands for user {1}", (string)dataReader["command"],channel);
+                }
+                dataReader.Close();
+            }
         }
 
         private void LoginToTwitch()
@@ -252,13 +277,16 @@ namespace FluzzBot
 
                     lock (_markovTextDict)
                     {
-                        if(!buffer.Contains(";display-name=nightbot;") && !buffer.Contains(";display-name=theroflbotr;")&& !buffer.Contains(";bits="))
+                        if(!_removedCommandsDict[username].Contains("!markov"))
                         {
-                            if(!buffer.Contains(";display-name=fluzzbot;"))
+                            if(!buffer.Contains(";display-name=nightbot;") && !buffer.Contains(";display-name=theroflbotr;")&& !buffer.Contains(";bits="))
                             {
-                                string message = stripBannedWords(userStrippedMsg);
-                                _markovTextDict[username] += message + " ";
+                                if(!buffer.Contains(";display-name=fluzzbot;"))
+                                {
+                                    string message = stripBannedWords(userStrippedMsg);
+                                    _markovTextDict[username] += message + " ";
 
+                                }
                             }
                         }
                   

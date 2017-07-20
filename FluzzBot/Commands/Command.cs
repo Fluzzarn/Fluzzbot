@@ -35,6 +35,12 @@ namespace FluzzBot.Commands
 
         public bool PreExecute(FluzzBot bot, string username)
         {
+
+            if(bot.RemovedCommands[username].Contains(_commandName))
+            {
+                return false;
+            }
+
             if (_onCoolDownDict == null)
             {
                 _cooldownDict = new Dictionary<string, int>();
