@@ -233,6 +233,10 @@ namespace FluzzBot
                                     else
                                         isSuperUser = true;
                                 }
+                                else
+                                {
+                                    isSuperUser = true;
+                                }
 
                             }
 
