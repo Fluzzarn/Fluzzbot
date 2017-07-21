@@ -65,6 +65,10 @@ namespace FluzzBot
         private Dictionary<string, List<string>> _joinedUsersDict;
         public Dictionary<string, List<string>> JoinedUsersDict { get => _joinedUsersDict; set { } }
 
+        //User, List of commands
+        private Dictionary<string, List<string>> _timedOutUsersDict;
+        public Dictionary<string, List<string>> TimedOutUsersDict { get => _timedOutUsersDict; set { } }
+
         public FluzzBot(Credentials c)
         {
             _channelCredentials = c;
@@ -72,6 +76,7 @@ namespace FluzzBot
             _justDanceDict = new Dictionary<string, JustDanceSetlist>();
             _removedCommandsDict = new Dictionary<string, List<string>>();
             _joinedUsersDict = new Dictionary<string, List<string>>();
+            _timedOutUsersDict = new Dictionary<string, List<string>>();
         }
 
 
@@ -91,6 +96,7 @@ namespace FluzzBot
                 {
                     StartMarkov(channel);
                 LoadBannedCommands(channel);
+                _timedOutUsersDict[channel] = new List<string>();
                 _joinedUsersDict[channel] = new List<string>();
                     JustDanceDict[channel] = new JustDanceSetlist(this);
                     JustDanceDict[channel].LoadSetlistFromDatabase(channel);
@@ -223,6 +229,26 @@ namespace FluzzBot
                     string username = buffer.Split('!')[0].Substring(1);
                     _joinedUsersDict[channelName].RemoveAll((x) => x ==username);
                 }
+                else if (buffer.Contains(":tmi.twitch.tv CLEARCHAT #"))
+                {
+                    string channelName = buffer.Split('#')[1].Split(' ')[0];
+                    string username = buffer.Split(':')[2];
+                    _timedOutUsersDict[channelName].Add(username);
+
+                    if (buffer.Contains("@ban-duration="))
+                    {
+                        int startIndex = buffer.IndexOf('=') + 1;
+                        int endIndex = buffer.IndexOf(';');
+                        string time = buffer.Substring(startIndex, endIndex - startIndex);
+
+                        int parsedTime;
+                        if (int.TryParse(time, out parsedTime))
+                        {
+                            Thread t = new Thread(() => { Thread.Sleep(3600 * 1000); _timedOutUsersDict[channelName].Remove(username); });
+                            t.Start();
+                        }
+                    }
+                }
 
                 if (buffer.Contains("PING :"))
                 {
@@ -238,7 +264,7 @@ namespace FluzzBot
                     username = username.Substring(9, username.IndexOf(':') - 10);
                     string substringKey = "#" + username + " :";
                     string twitchInfo = buffer.Substring(0, buffer.IndexOf(substringKey));
-                   string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
+                    string userStrippedMsg = buffer.Substring(buffer.IndexOf(substringKey) + substringKey.Length);
 
 
                     CurrentMessage = buffer;
@@ -248,11 +274,11 @@ namespace FluzzBot
 
                         if (command.CommandName == null)
                             continue;
-                        if(userStrippedMsg.Split(' ')[0].ToLower() == (command.CommandName).ToLower())
+                        if (userStrippedMsg.Split(' ')[0].ToLower() == (command.CommandName).ToLower())
                         {
                             bool isSuperUser = false;
 
-                            if(command.RequireMod)
+                            if (command.RequireMod)
                             {
                                 if (!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")))
                                 {
@@ -273,10 +299,10 @@ namespace FluzzBot
                                 isSuperUser = true;
                             }
 
-                                try
+                            try
                             {
                                 Command c = command as Command;
-                                if(isSuperUser)
+                                if (isSuperUser)
                                 {
                                     command.Execute(this, userStrippedMsg, username);
                                 }
@@ -304,25 +330,11 @@ namespace FluzzBot
                     if (twitchInfo.Contains(";bits="))
                     {
                         BitsCheerCommand b = new BitsCheerCommand();
-                        b.Execute(this, userStrippedMsg,username);
+                        b.Execute(this, userStrippedMsg, username);
                     }
 
-                    lock (_markovTextDict)
-                    {
-                        if(!_removedCommandsDict[username].Contains("!markov"))
-                        {
-                            if(!buffer.Contains(";display-name=nightbot;") && !buffer.Contains(";display-name=theroflbotr;")&& !buffer.Contains(";bits="))
-                            {
-                                if(!buffer.Contains(";display-name=fluzzbot;"))
-                                {
-                                    string message = stripBannedWords(userStrippedMsg);
-                                    _markovTextDict[username] += message + " ";
-
-                                }
-                            }
-                        }
-                  
-                    }
+                    Thread markovThread = new Thread(() => AddToMarkovText(buffer, username, userStrippedMsg));
+                    markovThread.Start();
 
                 }
                 else if(buffer.Contains("USERNOTICE"))
@@ -344,6 +356,36 @@ namespace FluzzBot
                     //}
                 }
 
+
+            }
+        }
+
+        private void AddToMarkovText(string buffer, string username, string userStrippedMsg)
+        {
+            Thread.Sleep(10000);
+            lock (_markovTextDict)
+            {
+                if (!_removedCommandsDict[username].Contains("!markov"))
+                {
+                    if (!buffer.Contains(";display-name=nightbot;") && !buffer.Contains(";display-name=theroflbotr;") && !buffer.Contains(";bits="))
+                    {
+                        if (!buffer.Contains(";display-name=fluzzbot;"))
+                        {
+                            int startIndex = buffer.IndexOf(";display-name=");
+                            startIndex = startIndex + ";display-name=".Length;
+                            int endIndex = buffer.IndexOf(';', startIndex);
+                            string bannedUser = buffer.Substring(startIndex, endIndex - startIndex).ToLower();
+
+                            if (!_timedOutUsersDict[username].Contains(bannedUser))
+                            {
+                                string message = stripBannedWords(userStrippedMsg);
+                                _markovTextDict[username] += message + " ";
+
+                            }
+
+                        }
+                    }
+                }
 
             }
         }
