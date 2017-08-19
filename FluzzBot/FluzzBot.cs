@@ -365,6 +365,9 @@ namespace FluzzBot
             Thread.Sleep(10000);
             lock (_markovTextDict)
             {
+
+
+
                 if (!_removedCommandsDict[username].Contains("!markov"))
                 {
                     if (!buffer.Contains(";display-name=nightbot;") && !buffer.Contains(";display-name=theroflbotr;") && !buffer.Contains(";bits="))
@@ -372,17 +375,25 @@ namespace FluzzBot
                         if (!buffer.Contains(";display-name=fluzzbot;"))
                         {
                             int startIndex = buffer.IndexOf(";display-name=");
-                            startIndex = startIndex + ";display-name=".Length;
-                            int endIndex = buffer.IndexOf(';', startIndex);
-                            string bannedUser = buffer.Substring(startIndex, endIndex - startIndex).ToLower();
-
-                            if (!_timedOutUsersDict[username].Contains(bannedUser))
+                            if (!(startIndex < 0))
                             {
-                                string message = stripBannedWords(userStrippedMsg);
-                                _markovTextDict[username] += message + " ";
+                                startIndex = startIndex + ";display-name=".Length;
 
+                                int endIndex = buffer.IndexOf(';', startIndex);
+                                string bannedUser = buffer.Substring(startIndex, endIndex - startIndex).ToLower();
+
+                                if (!_timedOutUsersDict[username].Contains(bannedUser))
+                                {
+
+                                    string message = stripBannedWords(userStrippedMsg);
+                                    _markovTextDict[username] += message + " ";
+                                    {
+                                        File.AppendAllText("./markov/" + username.ToLower() + ".txt", message + Environment.NewLine);
+                                    }
+                                }
                             }
 
+                
                         }
                     }
                 }
@@ -399,17 +410,13 @@ namespace FluzzBot
 
             if (File.Exists(filePath))
             {
-                _markovTextDict[channel.ToLower()] = File.ReadAllText(filePath);
+                foreach (var line in File.ReadAllLines(filePath).ToList())
+                {
+                    _markovTextDict[channel.ToLower()] = line;
+                    ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).MakeTDict(this, channel);
+                }
             }
-            using (FileStream f = File.Create(filePath))
-            {
-            }
-                                    ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).MakeTDict(this, channel);
-            lock (this.MarkovText)
-            {
 
-                File.AppendAllText("./markov/" + channel.ToLower() + ".txt", this.MarkovText[channel.ToLower()]);
-            }
 
             this.MarkovText[channel] = "";
             Console.WriteLine("DONE CREATING MARKOV DICT FOR CHANNEL {0}", channel);

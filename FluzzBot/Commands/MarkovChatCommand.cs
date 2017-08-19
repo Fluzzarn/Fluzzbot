@@ -48,7 +48,7 @@ namespace FluzzBot.Commands
             TDict dict = MakeTDict(bot, username);
             lock (bot.MarkovText)
             {
-                File.AppendAllText("./markov/" + username.ToLower() + ".txt", bot.MarkovText[username.ToLower()]);
+               // File.AppendAllText("./markov/" + username.ToLower() + ".txt",Environment.NewLine + bot.MarkovText[username.ToLower()]);
             }
 
             bot.MarkovText[username] = "";

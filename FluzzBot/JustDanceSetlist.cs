@@ -51,7 +51,7 @@ namespace FluzzBot
 
         public void LoadSetlistFromDatabase(string username)
         {
-            string queury = "SELECT * FROM justdance_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
+            string queury = "SELECT * FROM justdance_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username) ORDER BY `justdance_setlist`.`p_key` ASC";
 
             MySql.Data.MySqlClient.MySqlConnection conn;
             MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", username } },out conn);
