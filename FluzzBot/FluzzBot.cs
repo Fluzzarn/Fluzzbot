@@ -269,10 +269,7 @@ namespace FluzzBot
 
                     foreach (ICommand command in ValidCommands)
                     {
-                        if (true)
-                        {
 
-                        }
                         if (command.CommandName == null)
                             continue;
                         if (userStrippedMsg.Split(' ')[0].ToLower() == (command.CommandName).ToLower())
@@ -309,11 +306,16 @@ namespace FluzzBot
                                 }
                                 else
                                 {
-                                    if (c.PreExecute(this, username))
+                                    if (command.AutoFire)
+                                    {
+                                        continue;
+                                    }
+                                    else if (c.PreExecute(this, username))
                                     {
                                         command.Execute(this, userStrippedMsg, username);
 
                                     }
+
                                 }
 
                             }
