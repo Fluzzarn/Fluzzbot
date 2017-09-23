@@ -140,8 +140,7 @@ namespace FluzzBot
             _removedCommandsDict[channel] = new List<string>();
             string queury = "SELECT * FROM banned_commands WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
 
-            MySql.Data.MySqlClient.MySqlConnection conn;
-            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", channel } }, out conn);
+            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", channel } }, out MySqlConnection conn);
             if (dataReader.HasRows)
             {
                 while (dataReader.Read())
@@ -241,8 +240,7 @@ namespace FluzzBot
                         int endIndex = buffer.IndexOf(';');
                         string time = buffer.Substring(startIndex, endIndex - startIndex);
 
-                        int parsedTime;
-                        if (int.TryParse(time, out parsedTime))
+                        if (int.TryParse(time, out int parsedTime))
                         {
                             Thread t = new Thread(() => { Thread.Sleep(3600 * 1000); _timedOutUsersDict[channelName].Remove(username); });
                             t.Start();
@@ -271,7 +269,10 @@ namespace FluzzBot
 
                     foreach (ICommand command in ValidCommands)
                     {
+                        if (true)
+                        {
 
+                        }
                         if (command.CommandName == null)
                             continue;
                         if (userStrippedMsg.Split(' ')[0].ToLower() == (command.CommandName).ToLower())
@@ -385,7 +386,7 @@ namespace FluzzBot
                                 if (!_timedOutUsersDict[username].Contains(bannedUser))
                                 {
 
-                                    string message = stripBannedWords(userStrippedMsg);
+                                    string message = StripBannedWords(userStrippedMsg);
                                     _markovTextDict[username] += message + " ";
                                     {
                                         File.AppendAllText("./markov/" + username.ToLower() + ".txt", message + Environment.NewLine);
@@ -432,7 +433,7 @@ namespace FluzzBot
             Console.WriteLine("DONE CREATING MARKOV DICT FOR CHANNEL {0}", channel);
         }
 
-        private string stripBannedWords(string userStrippedMsg)
+        private string StripBannedWords(string userStrippedMsg)
         {
             
             foreach (var word in _bannedList)

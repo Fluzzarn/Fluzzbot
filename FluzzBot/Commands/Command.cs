@@ -102,8 +102,7 @@ namespace FluzzBot.Commands
             _onCooldown = false;
 
             string selectStatement = "SELECT * FROM command_cooldown WHERE user_id LIKE(SELECT user_id from Usernames WHERE username LIKE @username)";
-            MySql.Data.MySqlClient.MySqlConnection conn;
-            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(selectStatement, new Dictionary<string, string>() { { "@username", username } }, out conn);
+            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(selectStatement, new Dictionary<string, string>() { { "@username", username } }, out MySqlConnection conn);
 
             if (dataReader.HasRows)
             {

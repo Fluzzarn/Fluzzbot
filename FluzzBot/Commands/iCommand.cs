@@ -11,7 +11,7 @@ namespace FluzzBot
 
 
         
-
+        bool AutoFire { get => false; set; }
         string CommandName { get; set; }
         bool RequireMod { get;  set; }
         bool HasCooldown { get; set; }

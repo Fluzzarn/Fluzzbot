@@ -15,7 +15,7 @@ namespace FluzzBot
         public bool RequireMod { get => true; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
+        public bool AutoFire { get => false; set => throw new NotImplementedException(); }
         public SongRequestCommand()
         {
             _commandName = "!rbRequest";
@@ -44,10 +44,9 @@ namespace FluzzBot
             try
             {
 
-                MySql.Data.MySqlClient.MySqlConnection conn;
-                MySqlDataReader dataReader= MySQLHelper.GetSQLDataFromDatabase("SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE @message AND username LIKE @username", new Dictionary<string, string>() { {"@message",message },{"@username",username } },out conn);
-                
-                if(dataReader.HasRows)
+                MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase("SELECT * FROM(User_Songs JOIN Usernames ON User_Songs.user_id = Usernames.user_id JOIN Songs ON User_Songs.song_id = Songs.id) WHERE title LIKE @message AND username LIKE @username", new Dictionary<string, string>() { { "@message", message }, { "@username", username } }, out MySqlConnection conn);
+
+                if (dataReader.HasRows)
                 {
                     while (dataReader.Read())
                     {
