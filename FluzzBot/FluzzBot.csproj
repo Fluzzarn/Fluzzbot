@@ -74,6 +74,7 @@
     <Compile Include="Commands\KillCommand.cs" />
     <Compile Include="Commands\MarkovChatCommand.cs" />
     <Compile Include="Commands\NotTheOnionNewsCommand.cs" />
+    <Compile Include="Commands\ReloadSetlistCommand.cs" />
     <Compile Include="Commands\RemoveCommandCommand.cs" />
     <Compile Include="Commands\SetCooldownCommand.cs" />
     <Compile Include="Credentials.cs" />

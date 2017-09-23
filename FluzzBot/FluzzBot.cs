@@ -389,6 +389,7 @@ namespace FluzzBot
                                     _markovTextDict[username] += message + " ";
                                     {
                                         File.AppendAllText("./markov/" + username.ToLower() + ".txt", message + Environment.NewLine);
+
                                     }
                                 }
                             }
@@ -408,12 +409,21 @@ namespace FluzzBot
 
             string filePath = "./markov/" + channel.ToLower() + ".txt";
 
-            if (File.Exists(filePath))
+            if (File.Exists("./markov/" + channel.ToLower() + ".json"))
             {
+                ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).MakeTDict(this, channel);
+            }
+            else if (File.Exists(filePath))
+            {
+                int lines = File.ReadAllLines(filePath).ToList().Count;
+                int counter = 0;
                 foreach (var line in File.ReadAllLines(filePath).ToList())
                 {
+                    
                     _markovTextDict[channel.ToLower()] = line;
                     ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).MakeTDict(this, channel);
+                    counter++;
+                    Console.WriteLine("Line " + counter + " of " + lines );
                 }
             }
 

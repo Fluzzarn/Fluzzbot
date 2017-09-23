@@ -54,11 +54,13 @@ namespace FluzzBot.Commands
             bot.MarkovText[username] = "";
             string sentMessage = MarkovHelper.BuildString(dict, 25, true).Replace('@', ' ');
 
+
+
             foreach (var user in bot.JoinedUsersDict[username])
             {
-                if (sentMessage.Contains(user))
+                if (sentMessage.ToLower().Contains(user.ToLower()))
                 {
-                    sentMessage.Replace(user, " ");
+                    sentMessage = sentMessage.Replace(user, "[[SOME USER]]", StringComparison.OrdinalIgnoreCase);
                 }
             }
 
@@ -95,6 +97,31 @@ namespace FluzzBot.Commands
 
             File.WriteAllText("./markov/" + username.ToLower() + ".json", json);
             return dict;
+        }
+
+
+
+    }
+
+    public static class Extensions
+    {
+        public static string Replace(this string source, string oldString, string newString, StringComparison comp)
+        {
+            int index = source.IndexOf(oldString, comp);
+
+            // Determine if we found a match
+            bool MatchFound = index >= 0;
+
+            if (MatchFound)
+            {
+                // Remove the old text
+                source = source.Remove(index, oldString.Length);
+
+                // Add the replacemenet text
+                source = source.Insert(index, newString);
+            }
+
+            return source;
         }
     }
 }
