@@ -11,6 +11,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,6 +70,9 @@ namespace FluzzBot
         private Dictionary<string, List<string>> _timedOutUsersDict;
         public Dictionary<string, List<string>> TimedOutUsersDict { get => _timedOutUsersDict; set { } }
 
+
+        List<Regex> filteredRegex;
+
         public FluzzBot(Credentials c)
         {
             _channelCredentials = c;
@@ -102,7 +106,15 @@ namespace FluzzBot
                     JustDanceDict[channel].LoadSetlistFromDatabase(channel);
                 }
 
-            
+
+            List<Regex> filteredRegex = new List<Regex>();
+            filteredRegex.Add(new Regex(@";display-name=nightbot;"));
+            filteredRegex.Add(new Regex(@";display-name=theroflbotr;"));
+            filteredRegex.Add(new Regex(@";display-name=fluzzbot;"));
+            filteredRegex.Add(new Regex(@";display-name=moobot;"));
+            filteredRegex.Add(new Regex(@";bits="));
+            filteredRegex.Add(new Regex(@"emotes=(\d+:(\d+-\d+,*)+/*){3,}|emotes=(\d+:(\d+-\d+,*){3,})"));
+
 
             _bannedList = File.ReadAllLines("bannedWords.txt");
             _serverAddress = "irc.chat.twitch.tv";
@@ -384,35 +396,35 @@ namespace FluzzBot
 
 
 
+                string loweredBuffer = buffer.ToLower();
+                foreach (var reg in filteredRegex)
+                {
+                    if (reg.Match(loweredBuffer).Success)
+                    {
+                        return;
+                    }
+                }
                 if (!_removedCommandsDict[username].Contains("!markov"))
                 {
-                    if (!buffer.Contains(";display-name=nightbot;") && !buffer.Contains(";display-name=theroflbotr;") && !buffer.Contains(";bits="))
+                    int startIndex = buffer.IndexOf(";display-name=");
+                    if (!(startIndex < 0))
                     {
-                        if (!buffer.Contains(";display-name=fluzzbot;"))
+                        startIndex = startIndex + ";display-name=".Length;
+
+                        int endIndex = buffer.IndexOf(';', startIndex);
+                        string bannedUser = buffer.Substring(startIndex, endIndex - startIndex).ToLower();
+
+                        if (!_timedOutUsersDict[username].Contains(bannedUser))
                         {
-                            int startIndex = buffer.IndexOf(";display-name=");
-                            if (!(startIndex < 0))
+
+                            string message = StripBannedWords(userStrippedMsg);
+                            _markovTextDict[username] += message;
                             {
-                                startIndex = startIndex + ";display-name=".Length;
+                                File.AppendAllText("./markov/" + username.ToLower() + ".txt", message + Environment.NewLine);
 
-                                int endIndex = buffer.IndexOf(';', startIndex);
-                                string bannedUser = buffer.Substring(startIndex, endIndex - startIndex).ToLower();
-
-                                if (!_timedOutUsersDict[username].Contains(bannedUser))
-                                {
-
-                                    string message = StripBannedWords(userStrippedMsg);
-                                    _markovTextDict[username] += message + " ";
-                                    {
-                                        File.AppendAllText("./markov/" + username.ToLower() + ".txt", message + Environment.NewLine);
-
-                                    }
-                                }
                             }
-
-                
                         }
-                    }
+                    } 
                 }
 
             }
@@ -482,9 +494,6 @@ namespace FluzzBot
                         {
 
                             string command = _messagesToSend.Dequeue();
-
-                            //_chatWriter.Write(command);
-                            //_chatWriter.Flush();
                             WriteToStream(command);
 
 
@@ -524,7 +533,7 @@ namespace FluzzBot
 
 
 
-        public void EnqueueMessage(String message)
+        private void EnqueueMessage(String message)
         {
             lock (_messagesToSend)
             {
@@ -537,33 +546,27 @@ namespace FluzzBot
         {
             lock (_messagesToSend)
             {
-                
+#if DEBUG
                 Console.WriteLine("Enqueuing " + message);
+#endif
                 _messagesToSend.Enqueue(message);
             }
         }
 
-
         private void WriteToStream(String message)
         {
-            Console.WriteLine("Writing {0} to twitch",message);
+            Console.WriteLine("Writing {0} to twitch", message); 
+
             _chatWriter.WriteLine(message);
             _chatWriter.Flush();
         }
 
-        public void ConstructAndEnqueueMessage(String message)
-        {
-           message = message.Insert(0, "PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :");
-            EnqueueMessage(message);
-        }
 
         public void ConstructAndEnqueueMessage(String message, String username)
         {
             message = message.Insert(0, "PRIVMSG #" + username.ToLower() + " :");
             message = message.Replace('@', ' ');
 
-            byte[] utf8_bytes = Encoding.Default.GetBytes(message);
-            //message = Encoding.UTF8.GetString(utf8_bytes);
             EnqueueMessage(message);
         }
 

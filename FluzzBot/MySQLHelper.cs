@@ -34,8 +34,9 @@ namespace FluzzBot
                 cmd.Parameters.Add(sqlParam);
             }
 
+#if DEBUG
             Console.WriteLine(cmd.CommandText);
-
+#endif
             reader = cmd.ExecuteReader();
             return reader ;
         }
