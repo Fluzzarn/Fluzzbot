@@ -33,7 +33,7 @@ namespace FluzzBot.Commands
             }
         }
 
-        public bool PreExecute(FluzzBot bot, string username)
+        public bool PreExecute(FluzzBot bot, string username, bool isAutoFire)
         {
 
             if(bot.RemovedCommands[username].Contains(_commandName))
@@ -87,7 +87,11 @@ namespace FluzzBot.Commands
                 else
                 {
                     double secs = (DateTime.Now - _timerStartDict[username]).TotalSeconds;
-                    bot.ConstructAndEnqueueMessage("I'm on cooldown for another " + Math.Floor( _cooldownDict[username] + 0.0 - secs ) + " seconds", username);
+                    if (!isAutoFire)
+                    {
+
+                        bot.ConstructAndEnqueueMessage("I'm on cooldown for another " + Math.Floor( _cooldownDict[username] + 0.0 - secs ) + " seconds", username);
+                    }
                     return false;
                 }
             }
