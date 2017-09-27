@@ -15,7 +15,7 @@ namespace FluzzBot.Commands
         public bool HasCooldown { get => _hasCooldown; set => _hasCooldown = value; }
         public int Cooldown { get => _cooldown; set => _cooldown = value; }
         public bool OnCooldown { get => _onCooldown; set => _onCooldown = value; }
-       
+        public bool AutoFire { get => false; set => throw new NotImplementedException(); }
 
 
         public DadJokeCommand() : base()

@@ -33,7 +33,7 @@ namespace FluzzBot.Commands
             }
         }
 
-        public bool PreExecute(FluzzBot bot, string username)
+        public bool PreExecute(FluzzBot bot, string username, bool isAutoFire)
         {
 
             if(bot.RemovedCommands[username].Contains(_commandName))
@@ -87,7 +87,11 @@ namespace FluzzBot.Commands
                 else
                 {
                     double secs = (DateTime.Now - _timerStartDict[username]).TotalSeconds;
-                    bot.ConstructAndEnqueueMessage("I'm on cooldown for another " + Math.Floor( _cooldownDict[username] + 0.0 - secs ) + " seconds", username);
+                    if (!isAutoFire)
+                    {
+
+                        bot.ConstructAndEnqueueMessage("I'm on cooldown for another " + Math.Floor( _cooldownDict[username] + 0.0 - secs ) + " seconds", username);
+                    }
                     return false;
                 }
             }
@@ -102,8 +106,7 @@ namespace FluzzBot.Commands
             _onCooldown = false;
 
             string selectStatement = "SELECT * FROM command_cooldown WHERE user_id LIKE(SELECT user_id from Usernames WHERE username LIKE @username)";
-            MySql.Data.MySqlClient.MySqlConnection conn;
-            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(selectStatement, new Dictionary<string, string>() { { "@username", username } }, out conn);
+            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(selectStatement, new Dictionary<string, string>() { { "@username", username } }, out MySqlConnection conn);
 
             if (dataReader.HasRows)
             {

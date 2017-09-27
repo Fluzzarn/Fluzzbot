@@ -15,9 +15,9 @@ namespace FluzzBot.Commands
         public string CommandName { get => "!setcd"; set => throw new NotImplementedException(); }
         public bool RequireMod { get => _requireMod; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => _hasCooldown; set => _hasCooldown= value; }
-        
+        public bool AutoFire { get => false; set => throw new NotImplementedException(); }
 
-        
+
         public int Cooldown { get => _cooldown;  set { _cooldown = value; } }
 
 

@@ -12,7 +12,7 @@ namespace FluzzBot.Commands
         public bool RequireMod { get => _requireMod; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => _hasCooldown; set => throw new NotImplementedException(); }
         public int Cooldown { get => _cooldown; set => throw new NotImplementedException(); }
-
+        public bool AutoFire { get => false; set => throw new NotImplementedException(); }
 
         public RemoveCommandCommand()
         {

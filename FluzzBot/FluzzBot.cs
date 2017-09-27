@@ -140,8 +140,7 @@ namespace FluzzBot
             _removedCommandsDict[channel] = new List<string>();
             string queury = "SELECT * FROM banned_commands WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username)";
 
-            MySql.Data.MySqlClient.MySqlConnection conn;
-            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", channel } }, out conn);
+            MySqlDataReader dataReader = MySQLHelper.GetSQLDataFromDatabase(queury, new Dictionary<string, string>() { { "@username", channel } }, out MySqlConnection conn);
             if (dataReader.HasRows)
             {
                 while (dataReader.Read())
@@ -241,8 +240,7 @@ namespace FluzzBot
                         int endIndex = buffer.IndexOf(';');
                         string time = buffer.Substring(startIndex, endIndex - startIndex);
 
-                        int parsedTime;
-                        if (int.TryParse(time, out parsedTime))
+                        if (int.TryParse(time, out int parsedTime))
                         {
                             Thread t = new Thread(() => { Thread.Sleep(3600 * 1000); _timedOutUsersDict[channelName].Remove(username); });
                             t.Start();
@@ -272,59 +270,77 @@ namespace FluzzBot
                     foreach (ICommand command in ValidCommands)
                     {
 
-                        if (command.CommandName == null)
-                            continue;
-                        if (userStrippedMsg.Split(' ')[0].ToLower() == (command.CommandName).ToLower())
+                        if (command.AutoFire)
                         {
-                            bool isSuperUser = false;
-
-                            if (command.RequireMod)
+                            Command c = command as Command;
+                            if (c.PreExecute(this, username,command.AutoFire))
                             {
-                                if (!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")))
+                                command.Execute(this, userStrippedMsg, username);
+                            }
+                            
+                        }
+                        else
+                        {
+                            if (command.CommandName == null)
+                                continue;
+                            if (userStrippedMsg.Split(' ')[0].ToLower() == (command.CommandName).ToLower())
+                            {
+                                bool isSuperUser = false;
+
+                                if (command.RequireMod)
                                 {
-                                    if (!twitchInfo.Contains(";display-name=Fluzzarn;"))
-                                        continue;
+                                    if (!(twitchInfo.Contains("@badges=broadcaster") || twitchInfo.Contains(";mod=1")))
+                                    {
+                                        if (!twitchInfo.Contains(";display-name=Fluzzarn;"))
+                                            continue;
+                                        else
+                                            isSuperUser = true;
+                                    }
                                     else
+                                    {
                                         isSuperUser = true;
+                                    }
+
                                 }
-                                else
+
+                                if (twitchInfo.Contains(";display-name=Fluzzarn;"))
                                 {
                                     isSuperUser = true;
                                 }
 
-                            }
-
-                            if (twitchInfo.Contains(";display-name=Fluzzarn;"))
-                            {
-                                isSuperUser = true;
-                            }
-
-                            try
-                            {
-                                Command c = command as Command;
-                                if (isSuperUser)
+                                try
                                 {
-                                    command.Execute(this, userStrippedMsg, username);
-                                }
-                                else
-                                {
-                                    if (c.PreExecute(this, username))
+                                    Command c = command as Command;
+                                    if (isSuperUser)
                                     {
                                         command.Execute(this, userStrippedMsg, username);
+                                    }
+                                    else
+                                    {
+                                        if (command.AutoFire)
+                                        {
+                                            continue;
+                                        }
+                                        else if (c.PreExecute(this, username, command.AutoFire))
+                                        {
+                                            command.Execute(this, userStrippedMsg, username);
+
+                                        }
 
                                     }
+
+                                }
+                                catch (Exception ex)
+                                {
+
+                                    Console.WriteLine(ex.Message);
+                                    Console.WriteLine(ex.StackTrace);
+                                    ConstructAndEnqueueMessage("Go and literally @ me in discord because the bot threw an exception trying to do a command", username);
                                 }
 
                             }
-                            catch (Exception ex)
-                            {
-
-                                Console.WriteLine(ex.Message);
-                                Console.WriteLine(ex.StackTrace);
-                                ConstructAndEnqueueMessage("Go and literally @ me in discord because the bot threw an exception trying to do a command", username);
-                            }
-
                         }
+                        
                     }
 
                     if (twitchInfo.Contains(";bits="))
@@ -385,7 +401,7 @@ namespace FluzzBot
                                 if (!_timedOutUsersDict[username].Contains(bannedUser))
                                 {
 
-                                    string message = stripBannedWords(userStrippedMsg);
+                                    string message = StripBannedWords(userStrippedMsg);
                                     _markovTextDict[username] += message + " ";
                                     {
                                         File.AppendAllText("./markov/" + username.ToLower() + ".txt", message + Environment.NewLine);
@@ -425,6 +441,7 @@ namespace FluzzBot
                     counter++;
                     Console.WriteLine("Line " + counter + " of " + lines );
                 }
+                ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).SaveTDict(channel);
             }
 
 
@@ -432,7 +449,7 @@ namespace FluzzBot
             Console.WriteLine("DONE CREATING MARKOV DICT FOR CHANNEL {0}", channel);
         }
 
-        private string stripBannedWords(string userStrippedMsg)
+        private string StripBannedWords(string userStrippedMsg)
         {
             
             foreach (var word in _bannedList)

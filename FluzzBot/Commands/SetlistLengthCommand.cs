@@ -14,7 +14,7 @@ namespace FluzzBot
         public bool RequireMod { get => false; set => throw new NotImplementedException(); }
         public bool HasCooldown { get => false; set => throw new NotImplementedException(); }
         public int Cooldown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
+        public bool AutoFire { get => false; set => throw new NotImplementedException(); }
 
         public SetlistLengthCommand()
         {
