@@ -70,6 +70,9 @@ namespace FluzzBot
         private Dictionary<string, List<string>> _timedOutUsersDict;
         public Dictionary<string, List<string>> TimedOutUsersDict { get => _timedOutUsersDict; set { } }
 
+
+        List<Regex> filteredRegex;
+
         public FluzzBot(Credentials c)
         {
             _channelCredentials = c;
@@ -103,7 +106,15 @@ namespace FluzzBot
                     JustDanceDict[channel].LoadSetlistFromDatabase(channel);
                 }
 
-            
+
+            List<Regex> filteredRegex = new List<Regex>();
+            filteredRegex.Add(new Regex(@";display-name=nightbot;"));
+            filteredRegex.Add(new Regex(@";display-name=theroflbotr;"));
+            filteredRegex.Add(new Regex(@";display-name=fluzzbot;"));
+            filteredRegex.Add(new Regex(@";display-name=moobot;"));
+            filteredRegex.Add(new Regex(@";bits="));
+            filteredRegex.Add(new Regex(@"emotes=(\d+:(\d+-\d+,*)+/*){3,}|emotes=(\d+:(\d+-\d+,*){3,})"));
+
 
             _bannedList = File.ReadAllLines("bannedWords.txt");
             _serverAddress = "irc.chat.twitch.tv";
@@ -203,9 +214,9 @@ namespace FluzzBot
 
                 buffer = chatReader.ReadLine();
 
-
+#if DEBUG
                 global::System.Console.WriteLine(buffer);
-
+#endif
                 if (buffer.Split(' ')[1] == "001")
                 {
                     var file = File.ReadAllLines("./users.txt").ToList();
@@ -383,13 +394,7 @@ namespace FluzzBot
             lock (_markovTextDict)
             {
 
-                List<Regex> filteredRegex = new List<Regex>();
-                filteredRegex.Add(new Regex(@";display-name=nightbot;"));
-                filteredRegex.Add(new Regex(@";display-name=theroflbotr;"));
-                filteredRegex.Add(new Regex(@";display-name=fluzzbot;"));
-                filteredRegex.Add(new Regex(@";display-name=moobot;"));
-                filteredRegex.Add(new Regex(@";bits="));
-                filteredRegex.Add(new Regex(@"emotes=(\d+:(\d+-\d+,*)+/*){5,}|emotes=(\d+:(\d+-\d+,*){5,})"));
+
 
                 string loweredBuffer = buffer.ToLower();
                 foreach (var reg in filteredRegex)
@@ -550,9 +555,8 @@ namespace FluzzBot
 
         private void WriteToStream(String message)
         {
-#if DEBUG
             Console.WriteLine("Writing {0} to twitch", message); 
-#endif
+
             _chatWriter.WriteLine(message);
             _chatWriter.Flush();
         }
