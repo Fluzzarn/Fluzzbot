@@ -19,7 +19,7 @@ namespace FluzzBot.Commands
         public int Cooldown { get => _cooldown; set => _cooldown = value; }
         public bool AutoFire { get => true; set => throw new NotImplementedException(); }
 
-        private int order = 1;
+        private int order = 4;
 
         private Dictionary<string, TDict> _tDictDict;
 
@@ -32,20 +32,10 @@ namespace FluzzBot.Commands
         }
         public bool Execute(FluzzBot bot, string message,string username)
         {
-            if (message.Split(' ').Length > 1)
-            {
-                if (int.TryParse(message.Split(' ')[1], out int newOrder))
-                {
-                    if (order > 0)
-                        order = newOrder;
-                }
-                else
-                {
-                    bot.ConstructAndEnqueueMessage("Could not change order of bot, syntax is !markov <order>", username);
-                }
-            }
+
 
             TDict dict = MakeTDict(bot, username);
+            SaveTDict(username);
             lock (bot.MarkovText)
             {
                // File.AppendAllText("./markov/" + username.ToLower() + ".txt",Environment.NewLine + bot.MarkovText[username.ToLower()]);
@@ -92,11 +82,15 @@ namespace FluzzBot.Commands
                 _tDictDict.Add(username, dict);
             }
 
+            return dict;
+        }
 
+        public void SaveTDict(string username)
+        {
+            var dict = _tDictDict[username];
             string json = JsonConvert.SerializeObject(dict, Formatting.Indented);
 
             File.WriteAllText("./markov/" + username.ToLower() + ".json", json);
-            return dict;
         }
 
 
