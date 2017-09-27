@@ -482,9 +482,6 @@ namespace FluzzBot
                         {
 
                             string command = _messagesToSend.Dequeue();
-
-                            //_chatWriter.Write(command);
-                            //_chatWriter.Flush();
                             WriteToStream(command);
 
 
@@ -524,7 +521,7 @@ namespace FluzzBot
 
 
 
-        public void EnqueueMessage(String message)
+        private void EnqueueMessage(String message)
         {
             lock (_messagesToSend)
             {
@@ -537,25 +534,22 @@ namespace FluzzBot
         {
             lock (_messagesToSend)
             {
-                
+#if DEBUG
                 Console.WriteLine("Enqueuing " + message);
+#endif
                 _messagesToSend.Enqueue(message);
             }
         }
 
-
         private void WriteToStream(String message)
         {
-            Console.WriteLine("Writing {0} to twitch",message);
+#if DEBUG
+            Console.WriteLine("Writing {0} to twitch", message); 
+#endif
             _chatWriter.WriteLine(message);
             _chatWriter.Flush();
         }
 
-        public void ConstructAndEnqueueMessage(String message)
-        {
-           message = message.Insert(0, "PRIVMSG #" + _channelCredentials.ChannelName.ToLower() + " :");
-            EnqueueMessage(message);
-        }
 
         public void ConstructAndEnqueueMessage(String message, String username)
         {
