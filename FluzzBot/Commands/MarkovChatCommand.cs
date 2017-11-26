@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FluzzBot.Commands
@@ -19,9 +20,10 @@ namespace FluzzBot.Commands
         public int Cooldown { get => _cooldown; set => _cooldown = value; }
         public bool AutoFire { get => true; set => throw new NotImplementedException(); }
 
-        private int order = 4;
+        private int order = 2;
 
         private Dictionary<string, TDict> _tDictDict;
+        private Dictionary<string, string> _seedDict;
 
         public MarkovChatCommand()
         {
@@ -29,6 +31,7 @@ namespace FluzzBot.Commands
             _hasCooldown = true;
             _cooldown = 300;
             _tDictDict = new Dictionary<string, TDict>();
+            _seedDict = new Dictionary<string, string>();
         }
         public bool Execute(FluzzBot bot, string message,string username)
         {
@@ -36,16 +39,25 @@ namespace FluzzBot.Commands
 
             TDict dict = MakeTDict(bot, username);
             SaveTDict(username);
-            lock (bot.MarkovText)
-            {
-               // File.AppendAllText("./markov/" + username.ToLower() + ".txt",Environment.NewLine + bot.MarkovText[username.ToLower()]);
-            }
+
 
             bot.MarkovText[username] = "";
-            string sentMessage = MarkovHelper.BuildString(dict, 25, true).Replace('@', ' ');
+            string sentMessage = "";
 
 
+            if (_seedDict.ContainsKey(username))
+            {
+                sentMessage = MarkovHelper.BuildString(dict, 25, true,_seedDict[username]).Replace('@', ' ');
+                _seedDict[username] = "";
+            }
+            else
+            {
 
+                sentMessage = MarkovHelper.BuildString(dict, 25, true).Replace('@', ' ');
+            }
+
+
+            logger.Info("Markov is: \"" + sentMessage);
             foreach (var user in bot.JoinedUsersDict[username])
             {
                 if (sentMessage.ToLower().Contains(user.ToLower()))
@@ -61,10 +73,29 @@ namespace FluzzBot.Commands
         public TDict MakeTDict(FluzzBot bot, string username)
         {
             TDict dict;
+
+            TDict seedDict = new TDict();
+
+            foreach (var item in bot.MarkovText[username].Split('\n'))
+            {
+                seedDict = MarkovHelper.BuildTDict(item, order,seedDict);
+
+            }
+
+            if (seedDict.Count > 0)
+            {
+
+                // _seedDict[username]= seedDict.Keys.Skip(1).OrderByDescending(w => seedDict[w].Sum(t => t.Value)).First();
+            }
+
             if (_tDictDict.ContainsKey(username))
             {
                 dict = _tDictDict[username];
-                    dict = MarkovHelper.BuildTDict(bot.MarkovText[username], order, dict);
+                foreach (var item in bot.MarkovText[username].Split('\n'))
+                {
+                    dict = MarkovHelper.BuildTDict(item, order,dict);
+
+                }
                 
                 _tDictDict[username] = dict;
             }

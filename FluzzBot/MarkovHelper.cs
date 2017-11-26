@@ -79,17 +79,27 @@ namespace FluzzBot
                 return chunk.ToArray();
             }
 
-            static public string BuildString(TDict t, int len, bool exact)
+            static public string BuildString(TDict t, int len, bool exact, string seed = "")
             {
                 string last;
                 List<string> ucStr = new List<string>();
                 StringBuilder sb = new StringBuilder();
 
-                foreach (string word in t.Keys.Skip(1))
+
+                if (seed == "")
                 {
-                    if (char.IsUpper(word.First()))
-                        ucStr.Add(word);
+                    foreach (string word in t.Keys.Skip(1))
+                    {
+                        if (char.IsUpper(word.First()))
+                            ucStr.Add(word);
+                    }
                 }
+                else
+                {
+                    ucStr.Add(seed);
+                }
+
+
 
                 if (ucStr.Count > 0)
                     sb.Append(ucStr.ElementAt(r.Next(0, ucStr.Count)));
@@ -104,7 +114,10 @@ namespace FluzzBot
                     if (t.ContainsKey(last))
                         w = t[last];
                     else
+                    {
                         w = t[""];
+                        //sb.Append(" ");
+                    }
 
                     last = MarkovHelper.Choose(w);
                     sb.Append(last.Split(' ').Last()).Append(" ");
