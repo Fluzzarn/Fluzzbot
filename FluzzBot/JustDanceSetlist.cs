@@ -51,6 +51,7 @@ namespace FluzzBot
 
         public void LoadSetlistFromDatabase(string username)
         {
+            Songs.Clear();
             string queury = "SELECT * FROM justdance_setlist WHERE user_id LIKE(SELECT Usernames.user_id FROM Usernames WHERE Usernames.username like @username) ORDER BY `justdance_setlist`.`p_key` ASC";
 
             MySql.Data.MySqlClient.MySqlConnection conn;
