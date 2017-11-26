@@ -47,6 +47,7 @@ namespace FluzzBot.Commands
 
             if (_seedDict.ContainsKey(username))
             {
+                logger.Debug("Seed for markov is " + _seedDict[username]);
                 sentMessage = MarkovHelper.BuildString(dict, 25, true,_seedDict[username]).Replace('@', ' ');
                 _seedDict[username] = "";
             }
@@ -63,6 +64,7 @@ namespace FluzzBot.Commands
                 if (sentMessage.ToLower().Contains(user.ToLower()))
                 {
                     sentMessage = sentMessage.Replace(user, "[[SOME USER]]", StringComparison.OrdinalIgnoreCase);
+                    logger.Info("Removed " + user + " from markov");
                 }
             }
 

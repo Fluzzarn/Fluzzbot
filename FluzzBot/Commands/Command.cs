@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace FluzzBot.Commands
 {
     class Command
     {
-
+        protected Logger logger { get; private set; }
         protected string _commandName;
         protected bool _requireMod;
         protected bool _hasCooldown;
@@ -24,6 +25,7 @@ namespace FluzzBot.Commands
 
         public Command()
         {
+            logger = LogManager.GetLogger(GetType().FullName);
             if (_onCoolDownDict == null)
             {
                 _cooldownDict = new Dictionary<string, int>();

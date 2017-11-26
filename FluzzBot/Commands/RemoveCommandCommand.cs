@@ -26,6 +26,7 @@ namespace FluzzBot.Commands
 
             int rows = MySQLHelper.RunSQLRequest(setListUpdate, new Dictionary<string, string>() { { "@command", message.Split(' ')[1] }, { "@username", username } });
 
+            logger.Info("Removed " + message.Split(' ')[1] + " from channel " + username);
             bot.RemovedCommands[username].Add(message.Split(' ')[1]);
             bot.ConstructAndEnqueueMessage("Command has been removed from this channel, to re-add, run !addCommand",username);
             return rows >= 1;
