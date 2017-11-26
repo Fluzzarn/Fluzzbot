@@ -112,15 +112,21 @@ namespace FluzzBot
                 }
 
 
-            List<Regex> filteredRegex = new List<Regex>();
+            filteredRegex = new List<Regex>();
             filteredRegex.Add(new Regex(@";display-name=nightbot;"));
             filteredRegex.Add(new Regex(@";display-name=theroflbotr;"));
             filteredRegex.Add(new Regex(@";display-name=fluzzbot;"));
             filteredRegex.Add(new Regex(@";display-name=moobot;"));
             filteredRegex.Add(new Regex(@";bits="));
             filteredRegex.Add(new Regex(@"emotes=(\d+:(\d+-\d+,*)+/*){3,}|emotes=(\d+:(\d+-\d+,*){3,})"));
-
-
+            filteredRegex.Add(new Regex(@";display-name=rozo_bot;"));
+            if (File.Exists("regex.txt"))
+            {
+                foreach (var line in File.ReadAllLines("regex.txt"))
+                {
+                    filteredRegex.Add(new Regex(line));
+                }
+            }
             _bannedList = File.ReadAllLines("bannedWords.txt");
             _serverAddress = "irc.chat.twitch.tv";
             _serverPort = 6667;
