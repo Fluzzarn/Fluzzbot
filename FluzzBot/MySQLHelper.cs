@@ -36,10 +36,8 @@ namespace FluzzBot
                 cmd.Parameters.Add(sqlParam);
             }
 
-#if DEBUG
-            Console.WriteLine(cmd.CommandText);
-#endif
-            logger.Debug("Request: " + command);
+
+            logger.Debug("Request: " + cmd.CommandText);
             reader = cmd.ExecuteReader();
             return reader ;
         }
@@ -67,7 +65,7 @@ namespace FluzzBot
                 cmd.Parameters.Add(sqlParam);
                 logger.Debug("Adding " + param.Value + ":" + param.Key + " to SQL request");
             }
-            logger.Debug("Request: " + command);
+            logger.Debug("Request: " + cmd.CommandText);
             int rows= cmd.ExecuteNonQuery();
             conn.Close();
 

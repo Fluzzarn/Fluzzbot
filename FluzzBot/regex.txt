@@ -1,0 +1,7 @@
+﻿;display-name=nightbot;
+;display-name=theroflbotr;
+;display-name=fluzzbot;
+;display-name=moobot;
+;bits=
+emotes=(\d+:(\d+-\d+,*)+/*){3,}|emotes=(\d+:(\d+-\d+,*){3,})
+;display-name=rozo_bot;

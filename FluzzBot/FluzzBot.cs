@@ -3,6 +3,7 @@ using FluzzBot.Commands;
 using FluzzBot.Markov;
 using FluzzBotCore;
 using MySql.Data.MySqlClient;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,6 +21,7 @@ namespace FluzzBot
     public class FluzzBot
     {
 
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
 
         private Dictionary<string, string> _markovTextDict;
@@ -28,12 +30,14 @@ namespace FluzzBot
         private Dictionary<string, int> _spookDict;
         public Dictionary<string, int> Spookdict { get => _spookDict; set { } }
 
-
         private Dictionary<string, JustDanceSetlist> _justDanceDict;
         public Dictionary<string, JustDanceSetlist> JustDanceDict { get => _justDanceDict; set { } }
         TcpClient IRCSocket;
         String _serverAddress;
         int _serverPort;
+
+
+
         private Thread writeThread;
         private Thread readThread;
         private Queue<String> _messagesToSend;
@@ -97,7 +101,7 @@ namespace FluzzBot
     .SelectMany(s => s.GetTypes())
     .Where(p => type.IsAssignableFrom(p) && p.IsClass)))
             {
-                Console.WriteLine("Adding {0} to commands",command);
+                logger.Info("Adding {0} to commands",command);
                 ValidCommands.Add(Activator.CreateInstance(command) as ICommand);
             }
                 var file = File.ReadAllLines("./users.txt").ToList();
@@ -113,17 +117,11 @@ namespace FluzzBot
 
 
             filteredRegex = new List<Regex>();
-            filteredRegex.Add(new Regex(@";display-name=nightbot;"));
-            filteredRegex.Add(new Regex(@";display-name=theroflbotr;"));
-            filteredRegex.Add(new Regex(@";display-name=fluzzbot;"));
-            filteredRegex.Add(new Regex(@";display-name=moobot;"));
-            filteredRegex.Add(new Regex(@";bits="));
-            filteredRegex.Add(new Regex(@"emotes=(\d+:(\d+-\d+,*)+/*){3,}|emotes=(\d+:(\d+-\d+,*){3,})"));
-            filteredRegex.Add(new Regex(@";display-name=rozo_bot;"));
             if (File.Exists("regex.txt"))
             {
                 foreach (var line in File.ReadAllLines("regex.txt"))
                 {
+                    logger.Info("Adding \"{0}\" for markov ignoring", line);
                     filteredRegex.Add(new Regex(line));
                 }
             }
@@ -134,7 +132,7 @@ namespace FluzzBot
             SongList = new Setlist(this);
             try
             {
-                Console.WriteLine("Starting FluzzBot");
+                logger.Info("Starting FluzzBot");
                 ConnectToTwitch();
                 LoginToTwitch();
 
@@ -150,9 +148,9 @@ namespace FluzzBot
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Bot Threw An Exception And Cannot Recovery");
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.InnerException);
+                logger.Error("Bot Threw An Exception And Cannot Recovery");
+                logger.Error(ex.Message);
+                logger.Error(ex.InnerException);
                 throw ex;
             }
 
@@ -169,7 +167,7 @@ namespace FluzzBot
                 while (dataReader.Read())
                 {
                     _removedCommandsDict[channel].Add((string)dataReader["command"]);
-                    Console.WriteLine("Adding {0} to banned commands for user {1}", (string)dataReader["command"],channel);
+                    logger.Info("Adding {0} to banned commands for user {1}", (string)dataReader["command"],channel);
                 }
                 dataReader.Close();
             }
@@ -196,17 +194,10 @@ namespace FluzzBot
 
                     _isRunning = true;
 
-
-                //SongList.LoadSetlistFromDatabase();
-
-
-
-                
-
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception Thrown Authenticating With Twitch");
+                logger.Error("Exception Thrown Authenticating With Twitch");
 
                 throw;
             }
@@ -226,7 +217,7 @@ namespace FluzzBot
                 buffer = chatReader.ReadLine();
 
 #if DEBUG
-                global::System.Console.WriteLine(buffer);
+                logger.Trace(buffer);
 #endif
                 if (buffer.Split(' ')[1] == "001")
                 {
@@ -356,9 +347,9 @@ namespace FluzzBot
                                 catch (Exception ex)
                                 {
 
-                                    Console.WriteLine(ex.Message);
-                                    Console.WriteLine(ex.StackTrace);
-                                    ConstructAndEnqueueMessage("Go and literally @ me in discord because the bot threw an exception trying to do a command", username);
+                                    logger.Error(ex.Message);
+                                    logger.Error(ex.StackTrace);
+                                    ConstructAndEnqueueMessage("Go and literally @Fluzzarn#4287 in Discord because the bot threw an exception trying to do a command", username);
                                 }
 
                             }
@@ -412,6 +403,7 @@ namespace FluzzBot
                 {
                     if (reg.Match(loweredBuffer).Success)
                     {
+                        logger.Info("{0} matched regex {1}, ignoring message", buffer, reg);
                         return;
                     }
                 }
@@ -443,7 +435,7 @@ namespace FluzzBot
 
         private void StartMarkov(string channel)
         {
-            Console.WriteLine("CREATING MARKOV DICT FOR {0}", channel);
+            logger.Info("CREATING MARKOV DICT FOR {0}", channel);
             _markovTextDict.Add(channel.ToLower(), "");
 
             string filePath = "./markov/" + channel.ToLower() + ".txt";
@@ -462,14 +454,14 @@ namespace FluzzBot
                     _markovTextDict[channel.ToLower()] = line;
                     ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).MakeTDict(this, channel);
                     counter++;
-                    Console.WriteLine("Line " + counter + " of " + lines );
+                    logger.Info("Line " + counter + " of " + lines );
                 }
                 ((MarkovChatCommand)Commands.Find((x) => x.CommandName == "!markov")).SaveTDict(channel);
             }
 
 
             this.MarkovText[channel] = "";
-            Console.WriteLine("DONE CREATING MARKOV DICT FOR CHANNEL {0}", channel);
+            logger.Info("DONE CREATING MARKOV DICT FOR CHANNEL {0}", channel);
         }
 
         private string StripBannedWords(string userStrippedMsg)
@@ -481,6 +473,12 @@ namespace FluzzBot
             }
             return userStrippedMsg;
         }
+
+        internal void ReloadSettings()
+        {
+            throw new NotImplementedException();
+        }
+
 
         private void ChatMessageSendThread(StreamWriter chatWriter)
         {
@@ -535,9 +533,9 @@ namespace FluzzBot
             }
             catch (Exception ex)
             {
-                Console.WriteLine("An exception was thrown while trying to connect to Twitch");
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
+                logger.Error("An exception was thrown while trying to connect to Twitch");
+                logger.Error(ex.Message);
+                logger.Error(ex.StackTrace);
                 throw;
             }
         }
@@ -566,7 +564,7 @@ namespace FluzzBot
 
         private void WriteToStream(String message)
         {
-            Console.WriteLine("Writing {0} to twitch", message); 
+            logger.Trace("Writing {0} to twitch", message); 
 
             _chatWriter.WriteLine(message);
             _chatWriter.Flush();

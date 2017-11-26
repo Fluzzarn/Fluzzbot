@@ -119,6 +119,9 @@
     <Content Include="bannedWords.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="regex.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="ReleaseNotes.txt" />
     <Content Include="users.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
