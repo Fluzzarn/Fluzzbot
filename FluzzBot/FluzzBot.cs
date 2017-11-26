@@ -428,8 +428,8 @@ namespace FluzzBot
                         if (!_timedOutUsersDict[username].Contains(bannedUser))
                         {
 
-                            string message = StripBannedWords(userStrippedMsg) + " ";
-                            _markovTextDict[username] += message;
+                            string message = StripBannedWords(userStrippedMsg);
+                            _markovTextDict[username] += message + '\n';
                             {
                                 File.AppendAllText("./markov/" + username.ToLower() + ".txt", message + Environment.NewLine);
 
