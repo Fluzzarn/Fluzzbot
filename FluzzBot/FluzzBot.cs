@@ -25,6 +25,10 @@ namespace FluzzBot
         private Dictionary<string, string> _markovTextDict;
         public Dictionary<string, string> MarkovText { get =>  _markovTextDict; set { } }
 
+        private Dictionary<string, int> _spookDict;
+        public Dictionary<string, int> Spookdict { get => _spookDict; set { } }
+
+
         private Dictionary<string, JustDanceSetlist> _justDanceDict;
         public Dictionary<string, JustDanceSetlist> JustDanceDict { get => _justDanceDict; set { } }
         TcpClient IRCSocket;
@@ -81,6 +85,7 @@ namespace FluzzBot
             _removedCommandsDict = new Dictionary<string, List<string>>();
             _joinedUsersDict = new Dictionary<string, List<string>>();
             _timedOutUsersDict = new Dictionary<string, List<string>>();
+            _spookDict = new Dictionary<string, int>();
         }
 
 
