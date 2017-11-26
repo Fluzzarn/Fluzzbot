@@ -23,14 +23,6 @@ namespace FluzzBot
 
             FluzzBot bot = new FluzzBot(fluzzarn);
             bot.Start();
-            //Thread th = new Thread(() => bot.Start());
-            ////Thread th2 = new Thread(() => bot2.Start());
-            ////bot.Start();
-            //
-            //th.Start();
-            ////th2.Start();
-            //th.Join();
-            ////th2.Join();
         }
     }
 }
