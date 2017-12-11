@@ -424,7 +424,18 @@ namespace FluzzBot
                             _markovTextDict[username] += message + '\n';
                             {
                                 File.AppendAllText("./markov/" + username.ToLower() + ".txt", message + Environment.NewLine);
+                                string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
+                                string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
 
+                                string fileName = System.Text.RegularExpressions.Regex.Replace(bannedUser.ToLower(), invalidRegStr, "_");
+                                if (!File.Exists("./markov/chat/" + bannedUser.ToLower()+ ".txt"))
+                                {
+
+                                    using (File.Create("./markov/chat/" + fileName.ToLower() + ".txt"))
+                                    {
+                                    }
+                                }
+                                        File.AppendAllText("./markov/chat/" + fileName.ToLower() + ".txt", message + Environment.NewLine);
                             }
                         }
                     } 
@@ -491,7 +502,6 @@ namespace FluzzBot
             EnqueueMessage("CAP REQ :twitch.tv/commands");
             EnqueueMessage("CAP REQ :twitch.tv/tags");
             EnqueueMessage("CAP REQ :twitch.tv/membership");
-            //ConstructAndEnqueueMessage("/mods");
             while (_isRunning)
             {
                 lock (_messagesToSend)
