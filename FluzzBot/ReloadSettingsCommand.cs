@@ -23,7 +23,7 @@ namespace FluzzBot
         }
         public bool Execute(FluzzBot bot, string message, string username)
         {
-           // bot.ReloadSettings();
+            bot.ReloadSettings();
             return true;
         }
     }
